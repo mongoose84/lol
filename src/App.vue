@@ -1,30 +1,31 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
+<!-- src/App.vue -->
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <!-- Optional global layout -->
+  <div id="app">
+    
+
+    <!-- This is where the matched route component (Home or Results) is rendered -->
+    <router-view />
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
+<script setup>
+// No script logic needed for the root component in this simple case
+</script>
+
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+#app {
+  font-family: system-ui, sans-serif;
+  color: #222;
+  margin: 0;
+  padding: 0;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+/* Simple styling for the optional header */
+.site-header {
+  background: #3b82f6;       /* Tailwind blue‑500 */
+  color: white;
+  padding: 1rem;
+  text-align: center;
 }
 </style>
