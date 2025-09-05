@@ -5,8 +5,8 @@
     <form @submit.prevent="goToChampionView">
       
       <!-- ▼ Dropdown ---------------------------------------------------- -->
-      <select v-model="selectedRegion" class="region-select">
-        <option disabled value="">Select a region</option>
+      <select v-model="selectedRegion" class="region-select select-dark">
+
         <!-- Loop through the options array -->
         <option v-for="opt in options" :key="opt.value" :value="opt.value">
           {{ opt.label }}
@@ -46,7 +46,7 @@ const options = [
 
 // ----- Reactive state -------------------------------------------------
 const query = ref('')
-const selectedRegion = ref('')   // will hold the dropdown value
+const selectedRegion = ref('EUNE')   // will hold the dropdown value
 const router = useRouter()
 
 // ----- Methods --------------------------------------------------------
@@ -84,6 +84,7 @@ function goToChampionView() {
 .region-select {
   padding: 0.5rem;
   font-size: 1rem;
+  width: 90px;
 }
 
 /* Text input */

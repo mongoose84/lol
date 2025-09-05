@@ -5,7 +5,6 @@
     <!-- Placeholder – replace with API call or filtered data -->
     <p>Here you could render search results, call an API, etc.</p>
 
-    <router-link :to="{ name: 'Search' }">← Back to search</router-link>
   </section>
 </template>
 
@@ -24,7 +23,7 @@ defineProps({
 </script>
 
 <style scoped>
-.results {
+.championstats {
   max-width: 800px;
   margin: 4rem auto;
 }

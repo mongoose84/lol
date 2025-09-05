@@ -1,0 +1,53 @@
+/* src/assets/main.css */
+html, body {
+  /* Make the background dark enough so white text is readable */
+  background-color: #111;   /* optional – you probably want a dark bg */
+  color: #fff;              /* default text colour for everything */
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
+}
+
+/* Ensure that form controls (inputs, selects, buttons) also inherit the colour */
+input,
+textarea,
+select,
+button {
+  color: inherit;          /* inherit the white colour */
+  background: transparent;/* keep background transparent or set a dark shade */
+  border: 1px solid #555; /* optional – give them a visible border */
+}
+
+/* If you ever need to force‑override a component that sets its own colour,
+   use the universal selector with higher specificity */
+*:not([style]) {
+  color: #fff !important;
+}
+
+/* ---- Dark‑theme select (global) ---- */
+.select-dark {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background-color: #222;
+  color: #fff;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(-45deg, transparent 50%, #fff 50%);
+  background-position: right 0.75rem top 50%, right 0.75rem top 50%;
+  background-size: 0.45em 0.45em, 0.45em 0.45em;
+  background-repeat: no-repeat;
+}
+.select-dark:hover,
+.select-dark:focus {
+  border-color: #888;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+}
+.select-dark option {
+  background-color: #222;
+  color: #fff;
+}
+.select-dark::-ms-expand { display: none; }
