@@ -22,10 +22,3 @@ jobs:
 
       - name: Run Vitest with coverage
         run: npm run test:coverage
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: vitest-coverage
-          path: coverage/          # <-- must match reportsDirectory above
-          retention-days: 1      # keep for two weeks (adjust as you wish)
