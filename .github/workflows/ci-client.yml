@@ -1,4 +1,4 @@
-name: CI - Client (Vue)
+name: CI - Client
 
 on:
   push:
