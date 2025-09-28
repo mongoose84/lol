@@ -1,9 +1,20 @@
 <template>
-  <section class="search">
-     <h1>🔎 Search Champions</h1>
+  <section class="search" >
+     
 
-    <form @submit.prevent="goToChampionView">
+    <form @submit.prevent="goToChampionView" class="search-form">
       
+      <!-- Text input ---------------------------------------------------- -->
+      <input
+        v-model="query"
+        type="text"
+        placeholder="Search for your champion name…"
+        required
+        class="search-input"
+      />
+
+      <h1>#</h1>
+
       <!-- ▼ Dropdown ---------------------------------------------------- -->
       <select v-model="selectedRegion" class="region-select select-dark">
 
@@ -12,16 +23,10 @@
           {{ opt.label }}
         </option>
       </select>
+     
       
-      <!-- Text input ---------------------------------------------------- -->
-      <input
-        v-model="query"
-        type="text"
-        placeholder="Search for your champion…"
-        required
-        class="search-input"
-      />
-      <button type="submit" class="search-btn">Search</button>
+
+      
     </form>
   </section>
 </template>
@@ -67,17 +72,28 @@ function goToChampionView() {
 </script>
 
 <style scoped>
+.search {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* Full viewport height */
+  margin-top: -12%; /* Move up by 50px */
+}
+
+
 .search-page {
   max-width: 600px;
   margin: 4rem auto;
   text-align: center;
 }
 
-.search-form {
+.search-form {  
   display: flex;
-  gap: 0.5rem;
+  gap: 0.1rem;
+  margin-top: 1rem;
+  align-items: center;
   justify-content: center;
-  align-items: stretch;
 }
 
 /* Dropdown */
@@ -91,13 +107,9 @@ function goToChampionView() {
 .search-input {
   flex: 1;
   min-width: 0;
+  width: 300px;
   padding: 0.5rem;
   font-size: 1rem;
 }
 
-/* Button */
-.search-btn {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-}
 </style>

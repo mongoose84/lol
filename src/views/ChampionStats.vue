@@ -1,6 +1,6 @@
 <template>
   <section class="championstats">
-    <h2>Results for {{ region }}#{{ champion }}</h2>
+    <h2>Results for {{ champion }}#{{ region }}</h2>
 
     <!-- Placeholder – replace with API call or filtered data -->
     <p>Here you could render search results, call an API, etc.</p>
@@ -17,7 +17,6 @@ defineProps({
   },
   region: {
     type: String,
-    default: 'EUNE',
   },
 })
 </script>
