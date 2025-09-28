@@ -2,11 +2,11 @@ name: CI - Client
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: main
     paths:
       - 'client/**'            # Only run when something under client/ changes
   pull_request:
-    branches: [ main, develop ]
+    branches: main
     paths:
       - 'client/**'
   workflow_dispatch: # Allow manual triggering of the workflow
