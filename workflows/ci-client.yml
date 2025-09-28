@@ -1,14 +1,22 @@
-# .github/workflows/ci.yml
-name: CI
+name: CI - Client (Vue)
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
+    paths:
+      - 'client/**'            # Only run when something under client/ changes
   pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'client/**'
 
 jobs:
-  test:
+  build-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client   # All commands run inside client/
+        
     steps:
       - uses: actions/checkout@v4
 
