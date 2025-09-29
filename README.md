@@ -73,3 +73,15 @@ cd server
 ```
 npm install express axios dotenv cors
 ```
+
+##### Riot API
+create a .env file and add the Riot API key like this
+```
+RIOT_API_KEY=your_key_here
+```
+
+##### Run server
+To run the server write this:
+```
+node server.js
+```
