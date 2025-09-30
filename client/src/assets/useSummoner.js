@@ -1,0 +1,49 @@
+// src/assets/useSummoner.js
+import { ref } from 'vue';
+import axios from 'axios';
+
+/**
+ * This composable talks to the tiny Express proxy, server.js:
+ *   GET /summoner/by-riot-id/:gameName/:tagLine
+ *
+ * It returns four reactive values:
+ *   - summoner : the object we get back from Riot (or null)
+ *   - loading  : true while the request is in flight
+ *   - error    : string with an error message (or null)
+ *   - fetchSummoner : function you call with (gameName, tagLine)
+ */
+export default function useSummoner() {
+
+  const summoner = ref(null);
+  const loading  = ref(false);
+  const error    = ref(null);
+
+  // ---------- The actual request ----------
+  async function fetchSummoner(gameName, tagLine) {
+    
+    loading.value = true;
+    error.value   = null;
+    summoner.value = null;
+
+    try {
+      const { data } = await axios.get(
+        
+        `http://localhost:4000/api/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
+      );
+      summoner.value = data;               // the object the proxy returns
+    } catch (e) {
+      // Preserve a helpful message for the UI
+      error.value = e.response?.data?.error || e.message;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  // ---------- What the component receives ----------
+  return {
+    summoner,
+    loading,
+    error,
+    fetchSummoner,
+  };
+}

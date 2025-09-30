@@ -16,7 +16,7 @@
       <h1>#</h1>
 
       <!-- ▼ Dropdown ---------------------------------------------------- -->
-      <select v-model="selectedRegion" class="region-select select-dark">
+      <select v-model="tagLine" class="tagLine-select select-dark">
 
         <!-- Loop through the options array -->
         <option v-for="opt in options" :key="opt.value" :value="opt.value">
@@ -51,7 +51,7 @@ const options = [
 
 // ----- Reactive state -------------------------------------------------
 const query = ref('')
-const selectedRegion = ref('EUNE')   // will hold the dropdown value
+const tagLine = ref('EUNE')   // will hold the dropdown value
 const router = useRouter()
 
 // ----- Methods --------------------------------------------------------
@@ -60,11 +60,11 @@ function goToChampionView() {
   if (!trimmed) return
 
   // Build the champion-string. We include both the search term and the
-  // selected region. The receiving page can read them via
-  // `this.$route.query.champion` and `this.$route.query.region`.
-  const queryParams = { champion: trimmed }
-  if (selectedRegion.value) {
-    queryParams.region = selectedRegion.value
+  // selected tagLine. The receiving page can read them via
+  // `this.$route.query.gameName` and `this.$route.query.tagLine`.
+  const queryParams = { gameName: trimmed }
+  if (tagLine.value) {
+    queryParams.tagLine = tagLine.value
   }
 
   router.push({ name: 'ChampionStats', query: queryParams })
@@ -97,7 +97,7 @@ function goToChampionView() {
 }
 
 /* Dropdown */
-.region-select {
+.tagLine-select {
   padding: 0.5rem;
   font-size: 1rem;
   width: 90px;

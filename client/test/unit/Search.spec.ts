@@ -19,9 +19,9 @@ beforeEach(() => {
 })
 
 describe('Search.vue', () => {
-  it('sets the default region to EUNE', () => {
+  it('sets the default gameName to EUNE', () => {
     const wrapper = mount(Search)
-    expect(wrapper.vm.selectedRegion).toBe('EUNE')
+    expect(wrapper.vm.tagLine).toBe('EUNE')
   })
 
   it('builds the correct query object and calls router.push on submit', async () => {
@@ -29,7 +29,7 @@ describe('Search.vue', () => {
 
     // ----- fill the form -------------------------------------------------
     await wrapper.find('input.search-input').setValue('Doend')
-    await wrapper.find('select.region-select').setValue('EUW')
+    await wrapper.find('select.tagLine-select').setValue('EUW')
 
     // ----- submit ---------------------------------------------------------
     await wrapper.find('form').trigger('submit.prevent')
@@ -38,7 +38,7 @@ describe('Search.vue', () => {
     expect(mockPush).toHaveBeenCalledTimes(1)
     expect(mockPush).toHaveBeenCalledWith({
       name: 'ChampionStats',
-      query: { champion: 'Doend', region: 'EUW' },
+      query: { gameName: 'Doend', tagLine: 'EUW' },
     })
   })
 
