@@ -1,7 +1,9 @@
-require('dotenv').config();
-const express = require('express');
-const axios   = require('axios');
-const cors    = require('cors');
+import express from 'express';
+import axios from 'axios';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 app.use(cors());               // allow your Vue dev server to call it
@@ -12,10 +14,10 @@ app.use(express.json());
 // ---------------------------------------------------
 const REGION = 'eun1'; // change to the region you need (e.g. euw1, ap2, …)
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
-if (!RIOT_API_KEY) {
-  console.error('❌ Missing RIOT_API_KEY in environment variables');
-  process.exit(1);
-}
+const router = express.Router();
+router.use(cors());
+export default router;
+
 function riotUrl(path) {
   // All Riot endpoints are HTTPS and require the api_key query param
   return 'https://europe.api.riotgames.com/riot' + `${path}?api_key=${RIOT_API_KEY}`;
@@ -102,5 +104,16 @@ app.get('/api/by-riot-id/:gameName/:tagLine', async (req, res) => {
   }
 });
 
-const PORT = 4000;
-app.listen(PORT, () => console.log(`⚡️ Proxy listening on http://localhost:${PORT}`));
+if (import.meta.url === `file://${process.argv[1]}`) {
+  if (!process.env.RIOT_API_KEY) {
+    console.error('❌ Missing RIOT_API_KEY in environment variables');
+    process.exit(1);
+  }
+
+  const app = express();
+  app.use(router);
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () =>
+    console.log(`⚡️ Proxy listening on http://localhost:${PORT}`)
+  );
+}
