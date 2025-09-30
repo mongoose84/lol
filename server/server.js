@@ -86,16 +86,16 @@ app.get('/api/by-riot-id/:gameName/:tagLine', async (req, res) => {
     const puuid = await getPuuid(gameName, tagLine);
     console.log('Resolved PUUID:', puuid);
 
-    const matchIds = await getMatchHistory(puuid);
-    console.log(`Fetched ${matchIds.length} match IDs`);
+    //const matchIds = await getMatchHistory(puuid);
+    //console.log(`Fetched ${matchIds.length} match IDs`);
 
-    const matchDetails = await getMatchDetails(matchIds[0]);
-    console.log('Fetched match details for first match ID');
+    //const matchDetails = await getMatchDetails(matchIds[0]);
+    //console.log('Fetched match details for first match ID');
 
     const summonerData = await getSummonerByPuuid(puuid);
     console.log('Fetched summoner data for PUUID');
 
-    res.json('great success');
+    res.json( summonerData );
   } catch (err) {
     console.error('Account-by-RiotId error:', err.response?.data || err.message);
     res.status(err.response?.status || 500).json({ error: 'Failed to resolve Riot ID' });

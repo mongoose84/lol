@@ -3,11 +3,11 @@ import { mount } from '@vue/test-utils'
 import ChampionStats from '../../src/views/ChampionStats.vue'
 
 describe('ChampionStats.vue', () => {
-  it('renders champion and region from props', () => {
+  it('renders gameName and tagLine from props', () => {
     const wrapper = mount(ChampionStats, {
       props: {
-        champion: 'Doend',
-        region: 'EUNE',
+        gameName: 'Doend',
+        tagLine: 'EUNE',
       },
     })
 

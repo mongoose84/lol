@@ -14,7 +14,7 @@ const routes = [
     component: ChampionStats,
 
     // pass the query string as a prop so the component can read it easily
-    props: route => ({ champion: route.query.champion, region: route.query.region }),
+    props: route => ({ gameName: route.query.gameName, tagLine: route.query.tagLine }),
   }
 ]
 

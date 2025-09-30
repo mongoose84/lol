@@ -52,6 +52,9 @@ cd client
 ```
 npm install vite
 ```
+```
+npm install express axios dotenv cors
+```
 ##### Run dev
 ```
 npm run dev
