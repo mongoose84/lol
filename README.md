@@ -38,6 +38,8 @@ Vue
 
 Github actions
 
+Python
+
 ## In Visual Studio:
 Git clone https://github.com/mongoose84/AgileAstronaut.com.git
 
@@ -54,6 +56,11 @@ npm install vite
 ```
 ```
 npm install express axios dotenv cors
+``````
+npm install supertest
+```
+```
+npm i -D vitest @vue/test-utils axios-mock-adapter;
 ```
 ##### Run dev
 ```
@@ -72,19 +79,28 @@ npm run test:unit:coverage // Run all tests once and show test coverage
 from root
 ```
 cd server
+
+Install a virtual environment
 ```
+python3 -m venv venv      # creates a folder named “venv”
+source venv/bin/activate  # macOS / Linux / zsh
+# Windows PowerShell:
+# .\venv\Scripts\Activate.ps1
 ```
-npm install express axios dotenv cors
+
+```
+pip install fastapi uvicorn python-dotenv httpx
 ```
 
 ##### Riot API
 create a .env file and add the Riot API key like this
 ```
 RIOT_API_KEY=your_key_here
+PORT_NUMBER=the_port_for_the_server
 ```
 
 ##### Run server
 To run the server write this:
 ```
-node server.js
+uvicorn main:app --reload; 
 ```

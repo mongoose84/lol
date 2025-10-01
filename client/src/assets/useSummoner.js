@@ -28,7 +28,7 @@ export default function useSummoner() {
     try {
       const { data } = await axios.get(
         
-        `http://localhost:4000/api/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
+        `http://localhost:8000/api/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
       );
       summoner.value = data;               // the object the proxy returns
     } catch (e) {

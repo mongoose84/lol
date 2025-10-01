@@ -37,3 +37,7 @@ server/npm-debug.log*
 server/yarn-debug.log*
 server/pnpm-debug.log*
 server/lerna-debug.log* 
+
+# Python virtual environments
+server/.venv/
+server/venv/
