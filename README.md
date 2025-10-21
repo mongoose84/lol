@@ -52,12 +52,7 @@ from root
 cd client
 ```
 ```
-npm install vite
-```
-```
-npm install express axios dotenv cors
-``````
-npm install supertest
+npm install
 ```
 ```
 npm i -D vitest @vue/test-utils axios-mock-adapter;
@@ -79,7 +74,8 @@ npm run test:unit:coverage // Run all tests once and show test coverage
 from root
 ```
 cd server
-
+cd app
+```
 Install a virtual environment
 ```
 python3 -m venv venv      # creates a folder named “venv”
@@ -89,18 +85,23 @@ source venv/bin/activate  # macOS / Linux / zsh
 ```
 
 ```
-pip install fastapi uvicorn python-dotenv httpx
+pip install fastapi uvicorn python-dotenv httpx pytest pytest-asyncio
 ```
 
 ##### Riot API
 create a .env file and add the Riot API key like this
 ```
 RIOT_API_KEY=your_key_here
-PORT_NUMBER=the_port_for_the_server
 ```
 
 ##### Run server
 To run the server write this:
 ```
 uvicorn main:app --reload; 
+```
+
+##### Run server tests
+```
+cd server/tests
+pytest -vv
 ```
