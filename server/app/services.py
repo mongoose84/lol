@@ -32,7 +32,7 @@ def _summoner_url(path: str) -> str:
 # ----------------------------------------------------------------------
 # Public service functions
 # ----------------------------------------------------------------------
-async def resolve_riot_id_to_puuid(game_name: str, tag_line: str) -> str:
+async def get_puuid(game_name: str, tag_line: str) -> str:
     """
     Convert a Riot ID (game name + tag line) into a PUUID.
     """
@@ -68,7 +68,7 @@ async def fetch_match_detail(match_id: str) -> Dict[str, Any]:
         return resp.json()
 
 
-async def fetch_summoner_by_puuid(puuid: str) -> Dict[str, Any]:
+async def get_summoner_by_puuid(puuid: str) -> Dict[str, Any]:
     """
     Get the summoner profile for a PUUID.
     """

@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 from tests.helpers import DummyResponse
+from app.auth import create_token
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,7 +13,7 @@ from fastapi.testclient import TestClient
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
-from app import app  # re‑exported in app/__init__.py
+from app import app
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +28,7 @@ def fake_env(monkeypatch):
     """Guarantee that the Riot API key exists for every test."""
     monkeypatch.setenv("RIOT_API_KEY", "FAKE-KEY")
 
-@pytest.fixture
+@pytest.fixture(autouse=False)
 def mock_httpx_get():
     """
     Patch ``httpx.AsyncClient.get`` for a single test.
@@ -36,3 +37,18 @@ def mock_httpx_get():
     """
     with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
         yield mock_get
+
+@pytest.fixture
+def user_token():
+    """
+    Returns a JWT for a non‑admin user (sub = "user1").
+    The token lives for 5 minutes – enough for the test run.
+    """
+    return create_token("user1", expires_in=300)
+
+@pytest.fixture
+def admin_token():
+    """
+    Returns a JWT for an admin user (sub = "admin:user").
+    """
+    return create_token("admin:user", expires_in=300)

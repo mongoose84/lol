@@ -20,8 +20,8 @@ class DummyResponse:
         self.status_code = status_code
         self._json = json_data
         self.text = text
-
-    def json(self):
+        
+    async def json(self):
         return self._json
 
     def raise_for_status(self):

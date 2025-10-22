@@ -33,6 +33,7 @@ def test_successful_by_riot_id(test_client, mock_httpx_get):
     ]
 
     response = test_client.get("/api/by-riot-id/SomeGameName/NA1")
+    print("DEBUG:", response.status_code, response.json())
     assert response.status_code == 200
     payload = response.json()
     assert payload["name"] == "SampleSummoner"
@@ -47,6 +48,7 @@ def test_invalid_riot_id_returns_404(test_client, mock_httpx_get):
     )
 
     response = test_client.get("/api/by-riot-id/NonExistent/XX1")
+    print("DEBUG:", response.status_code, response.json())
     assert response.status_code == 404
     # The dummy raises an HTTPException with the raw text as the detail.
     assert response.json()["detail"] == "Not found"
@@ -59,5 +61,6 @@ def test_unexpected_error_is_500(test_client, mock_httpx_get):
     mock_httpx_get.side_effect = Exception("boom")
 
     response = test_client.get("/api/by-riot-id/Anything/YY1")
+    print("DEBUG:", response.status_code, response.json())
     assert response.status_code == 500
     assert "boom" in response.json()["detail"]
