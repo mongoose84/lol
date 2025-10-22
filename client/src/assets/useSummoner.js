@@ -17,6 +17,7 @@ export default function useSummoner() {
   const summoner = ref(null);
   const loading  = ref(false);
   const error    = ref(null);
+  const winRate  = ref(null);
 
   // ---------- The actual request ----------
   async function fetchSummoner(gameName, tagLine) {
@@ -24,13 +25,18 @@ export default function useSummoner() {
     loading.value = true;
     error.value   = null;
     summoner.value = null;
-
+    
     try {
       const { data } = await axios.get(
         
         `http://localhost:8000/api/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
       );
-      summoner.value = data;               // the object the proxy returns
+      summoner.value = data;  
+
+      winRate.value = await axios.get(
+        `http://localhost:8000/api/get-winrate/${summoner.value.puuid}`
+      );
+                   // the object the proxy returns
     } catch (e) {
       // Preserve a helpful message for the UI
       error.value = e.response?.data?.error || e.message;
@@ -42,6 +48,7 @@ export default function useSummoner() {
   // ---------- What the component receives ----------
   return {
     summoner,
+    winRate,
     loading,
     error,
     fetchSummoner,

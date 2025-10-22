@@ -40,6 +40,7 @@ async def resolve_riot_id_to_puuid(game_name: str, tag_line: str) -> str:
         f"/account/v1/accounts/by-riot-id/"
         f"{urllib.parse.quote(game_name)}/{urllib.parse.quote(tag_line)}"
     )
+    print("Requesting URL:", url)
     async with httpx.AsyncClient() as client:
         resp = await client.get(url)
         resp.raise_for_status()
@@ -51,10 +52,29 @@ async def fetch_match_history(puuid: str, start: int = 0, count: int = 100) -> L
     Return a list of match IDs for the given PUUID.
     """
     url = _match_url(f"/match/v5/matches/by-puuid/{urllib.parse.quote(puuid)}/ids")
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url, params={"start": start, "count": count})
-        resp.raise_for_status()
-        return resp.json()  # type: ignore[return-value]
+    print("DEBUG: url =", url)
+    resp = []
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params={"start": start, "count": count})
+            resp.raise_for_status()
+            return resp
+    except Exception as e:
+        print("DEBUG: Error printing start/count:", e)
+        return resp 
+
+async def fetch_match_winrate(puuid: str) -> float:
+    """
+    Fetch the match win rate for a given PUUID.
+    """
+    
+    match_history = await fetch_match_history(puuid)
+    print("DEBUG: match_history type =", type(match_history))
+    if not match_history:
+        return 0.0
+
+    wins = sum(1 for match in match_history if match["win"])
+    return wins / len(match_history)
 
 
 async def fetch_match_detail(match_id: str) -> Dict[str, Any]:

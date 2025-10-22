@@ -32,6 +32,7 @@ app.add_middleware(
 # Import the pure‑logic helpers
 # --------------------------------------------------------------
 from .services import (
+    fetch_match_winrate,
     resolve_riot_id_to_puuid,
     fetch_summoner_by_puuid,
     # fetch_match_history, fetch_match_detail  # optional later
@@ -57,6 +58,18 @@ async def by_riot_id(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
+@app.get("/api/get-winrate/{puuid}")
+async def get_winrate(puuid: str):
+    """
+    Get the match win rate for a given PUUID.
+    """
+    try:
+        winrate = await fetch_match_winrate(puuid)
+        return {"winrate": winrate}
+    except HTTPException as he:
+        raise he
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 # --------------------------------------------------------------
 # Run with uvicorn
