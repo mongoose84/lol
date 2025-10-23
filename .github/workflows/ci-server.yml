@@ -42,8 +42,10 @@ jobs:
           python -m pip install --upgrade pip
           # Install your project deps first
           pip install -r requirements.txt
+          # Install dev deps next
+          pip install fastapi uvicorn python-dotenv httpx 
           # Install tools we'll use for CI
-          pip install pytest mypy "ruff>=0.0.277"
+          pip install ruff mypy pytest pytest-asyncio
 
    
       - name: Run ruff linting

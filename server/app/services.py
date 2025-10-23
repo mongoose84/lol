@@ -1,10 +1,10 @@
 # app/services.py
-import json
 import os
+import json
+import httpx
 import urllib.parse
 from typing import List, Dict, Any
 
-import httpx
 from dotenv import load_dotenv
 
 # ----------------------------------------------------------------------
