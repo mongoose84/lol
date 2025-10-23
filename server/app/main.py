@@ -14,8 +14,6 @@ from .services import (
 # --------------------------------------------------------------
 load_dotenv()
 RIOT_API_KEY = os.getenv("RIOT_API_KEY")
-if not RIOT_API_KEY:
-    raise RuntimeError("❌ Missing RIOT_API_KEY in environment variables")
 
 # --------------------------------------------------------------
 # FastAPI app

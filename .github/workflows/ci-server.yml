@@ -56,7 +56,6 @@ jobs:
       - name: Run mypy type checking
         run: |
           # show-error-codes gives clearer messages
-          RIOT_API_KEY="dummy-key-for-ci"
           mypy . --show-error-codes         
     
       - name: Run pytest
