@@ -1,9 +1,10 @@
 # app/services.py
 import os
+import json
+import httpx
 import urllib.parse
 from typing import List, Dict, Any
 
-import httpx
 from dotenv import load_dotenv
 
 # ----------------------------------------------------------------------
@@ -11,8 +12,6 @@ from dotenv import load_dotenv
 # ----------------------------------------------------------------------
 load_dotenv()                     # reads .env in the cwd
 RIOT_API_KEY = os.getenv("RIOT_API_KEY")
-if not RIOT_API_KEY:
-    raise RuntimeError("❌ Missing RIOT_API_KEY in environment variables")
 
 REGION = "eun1"   # tweak as needed
 
@@ -40,6 +39,7 @@ async def resolve_riot_id_to_puuid(game_name: str, tag_line: str) -> str:
         f"/account/v1/accounts/by-riot-id/"
         f"{urllib.parse.quote(game_name)}/{urllib.parse.quote(tag_line)}"
     )
+
     async with httpx.AsyncClient() as client:
         resp = await client.get(url)
         resp.raise_for_status()
@@ -50,12 +50,48 @@ async def fetch_match_history(puuid: str, start: int = 0, count: int = 100) -> L
     """
     Return a list of match IDs for the given PUUID.
     """
-    url = _match_url(f"/match/v5/matches/by-puuid/{urllib.parse.quote(puuid)}/ids")
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url, params={"start": start, "count": count})
-        resp.raise_for_status()
-        return resp.json()  # type: ignore[return-value]
+    matches: List[str] = []
+    parsed_puuid = urllib.parse.quote(puuid)
+    match_url = _match_url(f"/match/v5/matches/by-puuid/{parsed_puuid}/ids")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(match_url, params={"api_key": RIOT_API_KEY,"start": start, "count": count})
+            resp.raise_for_status()
+            matches = json.loads(resp.text)
+            return matches
+    except Exception as e:
+        print("DEBUG: Error getting match history:", e)
+        return matches 
 
+async def fetch_match_winrate(puuid: str) -> float:
+    """
+    Fetch the match win rate for a given PUUID.
+    """
+    
+    match_history = await fetch_match_history(puuid, 0, 10)
+    print(f"DEBUG: Fetched {len(match_history)} matches")
+    wins = 0
+    for match_id in match_history:
+        lol_match = await fetch_match(match_id)
+
+         # participants is a list of dicts – find the one with our puuid
+        for participant in lol_match["info"]["participants"]:
+            if participant["puuid"] == puuid:
+                if participant["win"]:
+                    wins += 1
+
+    return wins / len(match_history) if match_history else 0.0
+
+async def fetch_match(match_id: str) -> Dict[str, Any]:
+    """
+    Retrieve the full payload for a single match.
+    """
+    match_url = _match_url(f"/match/v5/matches/{urllib.parse.quote(match_id)}")
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(match_url)
+        resp.raise_for_status()
+        return resp.json()
 
 async def fetch_match_detail(match_id: str) -> Dict[str, Any]:
     """

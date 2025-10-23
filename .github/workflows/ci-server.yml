@@ -35,27 +35,28 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9.6'   # ← change if you need a different version
+          python-version: '3.9'   # ← change if you need a different version
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           # Install your project deps first
           pip install -r requirements.txt
+          # Install dev deps next
+          pip install fastapi uvicorn python-dotenv httpx 
           # Install tools we'll use for CI
-          pip install pytest ruff mypy
+          pip install ruff mypy pytest pytest-asyncio
 
    
       - name: Run ruff linting
         run: |
           # format=github makes the output appear as annotations in the PR UI
-          ruff check . --format=github
+          ruff check
 
       - name: Run mypy type checking
         run: |
           # show-error-codes gives clearer messages
-          mypy . --show-error-codes
-
+          mypy . --show-error-codes         
     
       - name: Run pytest
         run: |
