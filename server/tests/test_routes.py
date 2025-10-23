@@ -1,5 +1,4 @@
 # tests/test_routes.py
-import pytest
 from .helpers import DummyResponse
 
 # --------------------------------------------------------------

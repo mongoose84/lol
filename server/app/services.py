@@ -52,7 +52,7 @@ async def fetch_match_history(puuid: str, start: int = 0, count: int = 100) -> L
     """
     Return a list of match IDs for the given PUUID.
     """
-    matches = [str]
+    matches: List[str] = []
     parsed_puuid = urllib.parse.quote(puuid)
     match_url = _match_url(f"/match/v5/matches/by-puuid/{parsed_puuid}/ids")
     

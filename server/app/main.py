@@ -1,13 +1,13 @@
 # app/main.py
 import os
-import urllib.parse
-from typing import List
-
-import httpx
 from fastapi import FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-
+from .services import (
+    fetch_match_winrate,
+    resolve_riot_id_to_puuid,
+    fetch_summoner_by_puuid,
+)
 # --------------------------------------------------------------
 # Load env (same as before)
 # --------------------------------------------------------------
@@ -26,16 +26,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-# --------------------------------------------------------------
-# Import the pure‑logic helpers
-# --------------------------------------------------------------
-from .services import (
-    fetch_match_winrate,
-    resolve_riot_id_to_puuid,
-    fetch_summoner_by_puuid,
-    # fetch_match_history, fetch_match_detail  # optional later
 )
 
 # --------------------------------------------------------------

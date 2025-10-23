@@ -85,7 +85,7 @@ source venv/bin/activate  # macOS / Linux / zsh
 ```
 
 ```
-pip install fastapi uvicorn python-dotenv httpx pytest pytest-asyncio
+pip install fastapi uvicorn python-dotenv httpx pytest pytest-asyncio ruff mypy
 ```
 
 ##### Riot API
