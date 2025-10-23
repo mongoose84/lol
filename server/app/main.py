@@ -65,7 +65,7 @@ async def get_winrate(puuid: str):
     """
     try:
         winrate = await fetch_match_winrate(puuid)
-        return {"winrate": winrate}
+        return winrate*100  # return as percentage
     except HTTPException as he:
         raise he
     except Exception as exc:

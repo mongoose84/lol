@@ -6,7 +6,11 @@
     <div v-else-if="error">{{ error }}</div>
 
     <!-- Pretty‑print the returned object -->
-    <pre v-else-if="summoner">{{ JSON.stringify(summoner, null, 2) }}</pre>
+    <pre v-else-if="summoner">
+  {{ JSON.stringify(summoner, null, 2) }}
+  <br />
+  Win‑rate: {{ winRate !== null ? `${winRate}%` : '—' }}
+</pre>
   </section>
 </template>
 
@@ -26,7 +30,13 @@ const props = defineProps({
   },
 });
 
-const { summoner, loading, error, fetchSummoner } = useSummoner();
+const {
+  summoner,
+  winRate,
+  loading,
+  error,
+  fetchSummoner,
+} = useSummoner()
 
 function load() {
   if (props.gameName.trim() && props.tagLine.trim()) {

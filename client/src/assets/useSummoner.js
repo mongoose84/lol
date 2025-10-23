@@ -25,6 +25,7 @@ export default function useSummoner() {
     loading.value = true;
     error.value   = null;
     summoner.value = null;
+    winRate.value = null;
     
     try {
       const { data } = await axios.get(
@@ -33,9 +34,11 @@ export default function useSummoner() {
       );
       summoner.value = data;  
 
-      winRate.value = await axios.get(
+      const response  = await axios.get(
         `http://localhost:8000/api/get-winrate/${summoner.value.puuid}`
       );
+      console.log("DEBUG: winrate response:", response.data);
+      winRate.value = response.data;
                    // the object the proxy returns
     } catch (e) {
       // Preserve a helpful message for the UI
