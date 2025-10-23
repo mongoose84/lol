@@ -49,7 +49,7 @@ jobs:
       - name: Run ruff linting
         run: |
           # format=github makes the output appear as annotations in the PR UI
-          ruff check . -- --format=github
+          ruff check . --format=github
 
       - name: Run mypy type checking
         run: |
