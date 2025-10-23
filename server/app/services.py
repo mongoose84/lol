@@ -12,8 +12,6 @@ from dotenv import load_dotenv
 # ----------------------------------------------------------------------
 load_dotenv()                     # reads .env in the cwd
 RIOT_API_KEY = os.getenv("RIOT_API_KEY")
-if not RIOT_API_KEY:
-    raise RuntimeError("❌ Missing RIOT_API_KEY in environment variables")
 
 REGION = "eun1"   # tweak as needed
 
