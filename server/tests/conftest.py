@@ -9,11 +9,6 @@ from fastapi.testclient import TestClient
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
-@pytest.fixture(autouse=True)
-def set_riot_api_key(monkeypatch):
-    """Make sure the app can import even when no real key is present."""
-    monkeypatch.setenv("RIOT_API_KEY", "dummy-key-for-tests")
-
 @pytest.fixture(scope="session")
 def test_client():
     """Provides a TestClient that talks to the real FastAPI app."""
