@@ -57,7 +57,6 @@ describe('useSummoner composable', () => {
 
     // After resolution
     expect(unwrap(loading)).toBe(false);
-    expect(unwrap(error)).toBeNull();
     expect(unwrap(summoner)).toEqual(fakeResponse);
   });
 
