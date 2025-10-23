@@ -43,13 +43,13 @@ jobs:
           # Install your project deps first
           pip install -r requirements.txt
           # Install tools we'll use for CI
-          pip install pytest ruff mypy
+          pip install pytest mypy "ruff>=0.0.277"
 
    
       - name: Run ruff linting
         run: |
           # format=github makes the output appear as annotations in the PR UI
-          ruff check . --format=github
+          ruff check
 
       - name: Run mypy type checking
         run: |
