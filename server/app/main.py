@@ -1,15 +1,13 @@
 # app/main.py
-import os
 from fastapi import FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 from .services import (
     fetch_match_winrate,
     resolve_riot_id_to_puuid,
     fetch_summoner_by_puuid,
 )
 
-# --------------------------------------------------------------
+# ----------------------------------------
 # FastAPI app
 # --------------------------------------------------------------
 app = FastAPI()
