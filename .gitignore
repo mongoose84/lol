@@ -41,3 +41,7 @@ server/lerna-debug.log*
 # Python virtual environments
 server/.venv/
 server/venv/
+
+# LolApi
+LolApi/bin/
+LolApi/obj/
