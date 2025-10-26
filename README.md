@@ -17,6 +17,11 @@ brew install git
 ##### Windows:
 Download git installer
 
+##### Windows:
+```
+sudo dnf install git-all
+```
+
 ##### Set git user
 ```
 git config --global user.name anon

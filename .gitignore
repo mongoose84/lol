@@ -45,3 +45,5 @@ server/venv/
 # LolApi
 LolApi/bin/
 LolApi/obj/
+LolApi/publish/
+LolApi/publish_windows/
