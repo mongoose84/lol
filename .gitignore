@@ -46,3 +46,6 @@ LolApi/bin
 LolApi/obj
 LolApi/lol-api/bin
 LolApi/lol-api/obj
+LolApi/lol-api/publish
+LolApi/lol-api/appsettings.Development.json
+LolApi/lol-api/appsettings.Development.json

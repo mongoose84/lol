@@ -83,6 +83,16 @@ cd lol-api
 ```
 Install a virtual environment
 
+build and run the applicaiton on Windows
+```
+dotnet build
+dotnet run
+```
+build and run the application on Linux Fedora
+```
+dotnet publish -c Release -r linux-x64 --self-contained false -o ./publish/linux
+dotnet ./publish/linux/LolApi.dll
+```
 create publishable build
 ```
 dotnet publish -c Release -r win-x86 --self-contained true 
