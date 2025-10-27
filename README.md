@@ -17,12 +17,12 @@ brew install git
 ##### Windows:
 Download git installer
 
-##### Windows:
+##### Linux Fedora:
 ```
 sudo dnf install git-all
 ```
 
-##### Set git user
+##### Set git user (from terminal)
 ```
 git config --global user.name anon
 
@@ -43,7 +43,7 @@ Vue
 
 Github actions
 
-Python
+C# Dev Kit
 
 ## In Visual Studio:
 Git clone https://github.com/mongoose84/AgileAstronaut.com.git
@@ -78,35 +78,13 @@ npm run test:unit:coverage // Run all tests once and show test coverage
 #### Server part
 from root
 ```
-cd server
-cd app
+cd LolApi
+cd lol-api
 ```
 Install a virtual environment
-```
-python3 -m venv venv      # creates a folder named “venv”
-source venv/bin/activate  # macOS / Linux / zsh
-# Windows PowerShell:
-# .\venv\Scripts\Activate.ps1
-```
 
+create publishable build
 ```
-pip install fastapi uvicorn python-dotenv httpx pytest pytest-asyncio ruff mypy
+dotnet publish -c Release -r win-x86 --self-contained true 
 ```
-
-##### Riot API
-create a .env file and add the Riot API key like this
-```
-RIOT_API_KEY=your_key_here
-```
-
-##### Run server
-To run the server write this:
-```
-uvicorn main:app --reload; 
-```
-
-##### Run server tests
-```
-cd server/tests
-pytest -vv
-```
+This will create all the files needed in the folder /bin/Release/publish
