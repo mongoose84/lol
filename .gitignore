@@ -6,7 +6,6 @@
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
 
 
@@ -43,5 +42,7 @@ server/.venv/
 server/venv/
 
 # LolApi
+LolApi/bin
+LolApi/obj
 LolApi/lol-api/bin
 LolApi/lol-api/obj
