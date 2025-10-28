@@ -30,12 +30,12 @@ export default function useSummoner() {
     try {
       const { data } = await axios.get(
         
-        `http://localhost:8000/api/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
+        `http://localhost:5000/api/summoner/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
       );
       summoner.value = data;  
-
+      console.log("DEBUG: summoner response:", summoner.value);
       const response  = await axios.get(
-        `http://localhost:8000/api/get-winrate/${summoner.value.puuid}`
+        `http://localhost:5000/api/winrate/${tagLine}/${summoner.value.puuid}`
       );
       console.log("DEBUG: winrate response:", response.data);
       winRate.value = response.data;

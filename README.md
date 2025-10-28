@@ -17,7 +17,12 @@ brew install git
 ##### Windows:
 Download git installer
 
-##### Set git user
+##### Linux Fedora:
+```
+sudo dnf install git-all
+```
+
+##### Set git user (from terminal)
 ```
 git config --global user.name anon
 
@@ -38,7 +43,7 @@ Vue
 
 Github actions
 
-Python
+C# Dev Kit
 
 ## In Visual Studio:
 Git clone https://github.com/mongoose84/AgileAstronaut.com.git
@@ -73,35 +78,27 @@ npm run test:unit:coverage // Run all tests once and show test coverage
 #### Server part
 from root
 ```
-cd server
-cd app
-```
-Install a virtual environment
-```
-python3 -m venv venv      # creates a folder named “venv”
-source venv/bin/activate  # macOS / Linux / zsh
-# Windows PowerShell:
-# .\venv\Scripts\Activate.ps1
+cd LolApi
+cd lol-api
 ```
 
-```
-pip install fastapi uvicorn python-dotenv httpx pytest pytest-asyncio ruff mypy
-```
+##### Riot API Key
+Add the Riot API key to a file in the lol-api folder and name it RiotSecret.txt
 
-##### Riot API
-create a .env file and add the Riot API key like this
-```
-RIOT_API_KEY=your_key_here
-```
+##### Build and run
 
-##### Run server
-To run the server write this:
+build and run the applicaiton on Windows
 ```
-uvicorn main:app --reload; 
+dotnet build
+dotnet run
 ```
-
-##### Run server tests
+build and run the application on Linux Fedora
 ```
-cd server/tests
-pytest -vv
+dotnet publish -c Release -r linux-x64 --self-contained false -o ./publish/linux
+dotnet ./publish/linux/LolApi.dll
 ```
+create publishable build for the hosting server
+```
+dotnet publish -c Release -r win-x86 --self-contained true 
+```
+This will create all the files needed in the folder /bin/Release/publish

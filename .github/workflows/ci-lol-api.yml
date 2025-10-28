@@ -1,0 +1,38 @@
+name: CI - LolApi
+
+on:
+  # Trigger on pushes to any branch and on pull‑request events
+  push:
+    branches: main
+    paths:
+      - 'LolApi/**'            # Only run when something under LolApi/ changes
+  pull_request:
+    branches: main
+    paths:
+      - 'LolApi/**'
+  workflow_dispatch: # Allow manual triggering of the workflow
+
+jobs:
+  build:
+    runs-on: windows-latest               # Needed for the win‑x86 runtime
+    defaults:
+      run:
+        working-directory: LolApi/lol-api   # All commands run from this folder
+
+    steps:
+      #  Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install the .NET SDK (choose the version you need)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'           # Adjust if you target a different version
+
+     
+
+      # Publish the project
+      - name: Publish
+        run: |
+          dotnet publish -c Release -r win-x86 --self-contained true
