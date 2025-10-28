@@ -5,6 +5,8 @@ on:
     branches: [main]                     # ← only pushes to the *main* branch
     paths:
       - 'client/**'                      # ← run only when something under client/ changees
+  pull_request:
+    branches: [main]
   workflow_dispatch: # Allow manual triggering of the workflow
 
 jobs:
@@ -36,5 +38,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          local-dir: client/dist/
+          local-dir: ./client/dist/
           server-dir: ${{ secrets.FTP_CLIENT_PATH }}

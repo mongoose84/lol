@@ -9,6 +9,10 @@ on:
     branches: [main]
     paths:
       - 'LolApi/**'          # only trigger when API code changes
+  pull_request:
+    branches: [main]
+    paths:
+      - 'LolApi/**'          # only trigger when API code changes
   workflow_dispatch:         # manual trigger from the UI
 
 # -------------------------------------------------
