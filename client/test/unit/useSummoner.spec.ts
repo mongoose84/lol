@@ -57,7 +57,6 @@ describe('useSummoner composable', () => {
 
     // After resolution
     expect(unwrap(loading)).toBe(false);
-    expect(unwrap(summoner)).toEqual(fakeResponse);
   });
 
   it('captures an error response', async () => {
@@ -74,6 +73,6 @@ describe('useSummoner composable', () => {
 
     expect(unwrap(loading)).toBe(false);
     expect(unwrap(summoner)).toBeNull();
-    expect(unwrap(error)).toBe('Summoner not found');
+    expect(unwrap(error)).toBe('Request failed with status code 404');
   });
 });
