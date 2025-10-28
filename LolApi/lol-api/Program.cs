@@ -78,3 +78,4 @@ app.MapGet("/api/winrate/{region}/{puuid}", async (string region, string puuid) 
 });
 
 app.Run();
+

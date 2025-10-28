@@ -57,7 +57,7 @@ jobs:
       - name: Publish (self‑contained)
         run: |
           dotnet publish -c Release -r win-x86 --self-contained true \
-            -o ./${{ env.PUBLISH_DIR }}
+            ./${{ env.PUBLISH_DIR }}
 
       # -------------------------------------------------
       # 5️⃣ ***Write the Riot API key to a file inside the publish folder***

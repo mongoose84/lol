@@ -1,35 +1,101 @@
-name: Client - Vue.js CI
+# .github/workflows/client.yml
+name: Client – Vue.js CI & Deploy
 
+# -------------------------------------------------
+# When to run the workflow
+# -------------------------------------------------
 on:
   push:
-    branches: [main]                     # ← only pushes to the *main* branch
+    branches: [main]
     paths:
-      - 'client/**'                      # ← run only when something under client/ changees
+      - 'client/**'               # only when something under client/ changes
   pull_request:
     branches: [main]
-  workflow_dispatch: # Allow manual triggering of the workflow
+    paths:
+      - 'client/**'
+  workflow_dispatch:               # manual trigger from the UI
 
+# -------------------------------------------------
+# Job definition
+# -------------------------------------------------
 jobs:
-  build-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
+    # -----------------------------------------------------------------
+    # All `run:` commands will start inside the Vue project folder
+    # -----------------------------------------------------------------
     defaults:
       run:
-        working-directory: ./client   # All commands run inside client/
-        
-    steps:
-      - uses: actions/checkout@v4
+        working-directory: client
 
-      - name: Setup Node
+    steps:
+      # -------------------------------------------------
+      # 1️⃣ Checkout the repository
+      # -------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -------------------------------------------------
+      # 2️⃣ Set up Node (use a supported LTS version)
+      # -------------------------------------------------
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.19.0'
+          node-version: '20.x'   # LTS – change only if you really need 22
 
+      # -------------------------------------------------
+      # 3️⃣ (Optional) Cache node_modules to speed up CI
+      # -------------------------------------------------
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: client/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # -------------------------------------------------
+      # 4️⃣ Install dependencies
+      # -------------------------------------------------
       - name: Install dependencies
         run: npm ci
 
+      # -------------------------------------------------
+      # 5️⃣ Run unit tests with coverage (your existing step)
+      # -------------------------------------------------
       - name: Run Vitest with coverage
         run: npm run test:unit:coverage
 
+      # -------------------------------------------------
+      # 6️⃣ **Build the production bundle**
+      # -------------------------------------------------
+      - name: Build client
+        run: npm run build          # make sure your package.json defines a "build" script
+        # After this step a folder called `dist/` will exist inside `client/`
+
+      # -------------------------------------------------
+      # 7️⃣ Verify that the build output exists (fails fast if not)
+      # -------------------------------------------------
+      - name: Ensure dist folder exists
+        run: |
+          if [ ! -d "./dist" ]; then
+            echo "❌ ./dist does NOT exist – aborting deployment."
+            exit 1
+          fi
+          echo "✅ ./dist found – proceeding to upload."
+
+      # -------------------------------------------------
+      # 8️⃣ List the files that will be uploaded (debugging aid)
+      # -------------------------------------------------
+      - name: List built files
+        run: |
+          echo "=== Content of client/dist ==="
+          ls -R ./dist
+
+      # -------------------------------------------------
+      # 9️⃣ Deploy via FTPS
+      # -------------------------------------------------
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -38,5 +104,9 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          local-dir: ./client/dist/
+          # Because we are already inside `client/`, the path is just `dist/`
+          local-dir: ./dist/
           server-dir: ${{ secrets.FTP_CLIENT_PATH }}
+          # optional safety flags (uncomment if you want them)
+          # dry-run: false
+          # timeout: 30
