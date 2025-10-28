@@ -1,4 +1,4 @@
-name: Build LolApi
+name: CI - LolApi
 
 on:
   # Trigger on pushes to any branch and on pull‑request events
@@ -11,7 +11,7 @@ on:
     paths:
       - 'LolApi/**'
   workflow_dispatch: # Allow manual triggering of the workflow
-  
+
 jobs:
   build:
     runs-on: windows-latest               # Needed for the win‑x86 runtime
