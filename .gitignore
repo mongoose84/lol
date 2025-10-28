@@ -26,21 +26,6 @@ client/dist-ssr
 client/*.local
 client/coverage
 
-#Server-side
-server/node_modules
-server/.env
-server/*.local
-server/logs
-server/*.log
-server/npm-debug.log*
-server/yarn-debug.log*
-server/pnpm-debug.log*
-server/lerna-debug.log* 
-
-# Python virtual environments
-server/.venv/
-server/venv/
-
 # LolApi
 LolApi/bin
 LolApi/obj

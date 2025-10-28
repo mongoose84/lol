@@ -88,13 +88,11 @@ namespace LolApi.Riot
             var matchUrl = RiotUrl.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=10";
 
             using var httpClient = new HttpClient();
-            Console.WriteLine($"Fetching match history from URL: {matchUrl}");
             var response = await httpClient.GetAsync(matchUrl);
             response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx.
 
             // Read and deserialize the JSON array of strings
             var json = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Match history JSON response: {json}");
             matches = JsonSerializer.Deserialize<List<string>>(json,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>();
 

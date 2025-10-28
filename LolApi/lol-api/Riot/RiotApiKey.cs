@@ -29,7 +29,7 @@ namespace LolApi.Riot
             }
             catch (IOException e)
             {
-                Console.WriteLine("The RiotSecret.txt could not be read:");
+                Console.WriteLine("The RiotSecret could not be read:");
                 Console.WriteLine(e.Message);
             }
         }

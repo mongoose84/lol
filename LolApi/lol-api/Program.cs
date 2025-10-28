@@ -67,7 +67,6 @@ app.MapGet("/api/winrate/{region}/{puuid}", async (string region, string puuid) 
             return Results.BadRequest(new { error = "Puuid is null or whitespace" });
         }
 
-        Console.WriteLine($"Calculating winrate for: {region}, puuid: {puuid}");
         var winrate = await riotServices.GetWinrateAsync(region, puuid);
 
         return Results.Ok(winrate);
@@ -77,10 +76,5 @@ app.MapGet("/api/winrate/{region}/{puuid}", async (string region, string puuid) 
         return Results.Problem(detail: ex.Message, statusCode: 500);
     }
 });
-
-foreach (var ep in app.Services.GetRequiredService<EndpointDataSource>().Endpoints)
-{
-    Console.WriteLine(ep.DisplayName);
-}
 
 app.Run();
