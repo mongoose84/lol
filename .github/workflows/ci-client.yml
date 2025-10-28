@@ -1,14 +1,14 @@
-name: CI - Client
+name: Client - Vue.js CI
 
 on:
   push:
-    branches: main
+    branches: [main]                     # ← only pushes to the *main* branch
     paths:
-      - 'client/**'            # Only run when something under client/ changes
+      - 'client/**'                      # ← run only when something under client/ changes
   pull_request:
-    branches: main
+    branches: [main]                     # ← PRs whose base branch is *main*
     paths:
-      - 'client/**'
+      - 'client/**'  
   workflow_dispatch: # Allow manual triggering of the workflow
 
 jobs:
@@ -31,3 +31,14 @@ jobs:
 
       - name: Run Vitest with coverage
         run: npm run test:unit:coverage
+
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_URL }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./dist/
+          server-dir: ${{ secrets.FTP_CLIENT_PATH }}
