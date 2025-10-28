@@ -61,21 +61,31 @@ jobs:
       # -------------------------------------------------
       # 5️⃣ ***Write the Riot API key to a file inside the publish folder***
       # -------------------------------------------------
-      - name: Create Riot API key file (masked)
+      - name: Create secret   # runs on the default PowerShell shell
         env:
           RIOT_KEY: ${{ secrets.RIOT_API_KEY }}
+          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}   # "publish-output"
         run: |
-          # Hide the value from logs
-          echo "::add-mask::$RIOT_KEY"
-          # Write the key - do NOT echo the content
-          echo "$RIOT_KEY" > ./${{ env.PUBLISH_DIR }}/RiotSecret.txt
-          # Quick existence check (no cat!)
-          if [ -f "./${{ env.PUBLISH_DIR }}/RiotSecret.txt" ]; then
-            echo "✅ RiotSecret.txt created"
-          else
-            echo "❌ Failed to create RiotSecret.txt"
-            exit 1
-          fi
+          # -------------------------------------------------
+          # Mask the secret so it never appears in the logs
+          # -------------------------------------------------
+          Write-Host "::add-mask::$env:RIOT_KEY"
+
+          # -------------------------------------------------
+          # Write the secret to a file inside the publish folder
+          # -------------------------------------------------
+          $targetPath = Join-Path -Path $env:PUBLISH_DIR -ChildPath "RiotSecret.txt"
+          Set-Content -Path $targetPath -Value $env:RIOT_KEY -Encoding UTF8
+
+          # -------------------------------------------------
+          # Verify the file exists (PowerShell version of `if [ -f … ]`)
+          # -------------------------------------------------
+          if (Test-Path -Path $targetPath) {
+              Write-Host "✅ File created"
+          } else {
+              Write-Error "❌ Failed to create file"
+              exit 1
+          }
 
       # -------------------------------------------------
       # 6️⃣ Verify the publish folder (helps debugging)
