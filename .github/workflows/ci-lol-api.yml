@@ -1,63 +1,90 @@
-name: LolApi - ASP .NET CI
+# .github/workflows/deploy-api.yml
+name: Deploy .NET API + Riot key
 
+# -------------------------------------------------
+# When to run
+# -------------------------------------------------
 on:
   push:
     branches: [main]
     paths:
-      - 'LolApi/lol-api/**'              # ← watch the LolApi folder
-  pull_request:
-    branches: [main]
-    paths:
-      - 'LolApi/lol-api/**'
-  workflow_dispatch: # Allow manual triggering of the workflow
+      - 'LolApi/**'          # only trigger when API code changes
+  workflow_dispatch:         # manual trigger from the UI
 
+# -------------------------------------------------
+# Job definition
+# -------------------------------------------------
 jobs:
-  build:
-    runs-on: windows-latest               # Needed for the win‑x86 runtime
+  build-and-deploy:
+    runs-on: windows-latest               # needed for win‑x86 runtime
+    env:
+      # Folder where `dotnet publish` will drop the files
+      PUBLISH_DIR: publish-output
+
     defaults:
+      # Every `run:` step will start in the project folder
       run:
-        working-directory: LolApi/lol-api   # All commands run from this folder
+        working-directory: LolApi/lol-api
 
     steps:
-      #  Checkout the repository
+      # -------------------------------------------------
+      # 1️⃣ Checkout the repo
+      # -------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install the .NET SDK (choose the version you need)
-      - name: Setup .NET
+      # -------------------------------------------------
+      # 2️⃣ Set up .NET SDK
+      # -------------------------------------------------
+      - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'           # Adjust if you target a different version
+          dotnet-version: '8.x'          # adjust if you target another version
 
-      # Publish the project
-      - name: Publish
+      # -------------------------------------------------
+      # 3️⃣ Restore NuGet packages (optional but clearer logs)
+      # -------------------------------------------------
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # -------------------------------------------------
+      # 4️⃣ Publish a **self‑contained** Windows‑x86 binary
+      # -------------------------------------------------
+      - name: Publish (self‑contained)
         run: |
-          dotnet publish -c Release -r win-x86 --self-contained true
-      
+          dotnet publish -c Release -r win-x86 --self-contained true \
+            -o ./${{ env.PUBLISH_DIR }}
 
+      # -------------------------------------------------
+      # 5️⃣ ***Write the Riot API key to a file inside the publish folder***
+      # -------------------------------------------------
       - name: Create Riot‑API‑key file (masked)
         env:
           RIOT_KEY: ${{ secrets.RIOT_API_KEY }}
         run: |
-          # Mask the value in the log (extra safety)
+          # Hide the value from logs
           echo "::add-mask::$RIOT_KEY"
-
-          # Write the key to a plain‑text file.
-          # The file will be uploaded later; it is NOT printed to the console.
-          echo "$RIOT_KEY" > ./publish-output/RiotSecret.txt
-
-          # (Optional) verify the file exists – do NOT cat its contents!
-          if [ -f "./publish-output/RiotSecret.txt" ]; then
-            echo "✅ RiotSecret.txt created"
+          # Write the key – do NOT echo the content
+          echo "$RIOT_KEY" > ./${{ env.PUBLISH_DIR }}/riot_api_key.txt
+          # Quick existence check (no cat!)
+          if [ -f "./${{ env.PUBLISH_DIR }}/riot_api_key.txt" ]; then
+            echo "✅ riot_api_key.txt created"
           else
-            echo "❌ Failed to create RiotSecret.txt"
+            echo "❌ Failed to create riot_api_key.txt"
             exit 1
           fi
+
+      # -------------------------------------------------
+      # 6️⃣ Verify the publish folder (helps debugging)
+      # -------------------------------------------------
       - name: List publish output
         run: |
           echo "=== Files that will be uploaded ==="
-          ls -R ./publish-output
+          ls -R ./${{ env.PUBLISH_DIR }}
 
+      # -------------------------------------------------
+      # 7️⃣ Deploy via FTPS
+      # -------------------------------------------------
       - name: Deploy to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -66,5 +93,9 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          local-dir: ./publish-output/          # <-- folder we just created
+          # Point to the SAME folder we just verified
+          local-dir: ./${{ env.PUBLISH_DIR }}/
           server-dir: ${{ secrets.FTP_SERVER_PATH }}
+          # optional safety flags
+          # dry-run: false
+          # timeout: 30
