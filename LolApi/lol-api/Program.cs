@@ -42,9 +42,9 @@ app.MapGet("/api/summoner/{gameName}/{tagLine}", async (string gameName, string 
             return Results.BadRequest(new { error = "Both gameName and tagLine must be provided." });
         }
 
-        var puuidValue = await riotServices.GetSummonerAsync(gameName, tagLine);
+        var summoner = await riotServices.GetSummonerAsync(gameName, tagLine);
 
-        return Results.Ok(puuidValue);
+        return Results.Content(summoner, "application/json");
     }
     catch (Exception ex)
     {
