@@ -29,9 +29,42 @@ jobs:
         with:
           dotnet-version: '8.x'           # Adjust if you target a different version
 
-     
-
       # Publish the project
       - name: Publish
         run: |
           dotnet publish -c Release -r win-x86 --self-contained true
+      
+
+      - name: Create Riot‑API‑key file (masked)
+        env:
+          RIOT_KEY: ${{ secrets.RIOT_API_KEY }}
+        run: |
+          # Mask the value in the log (extra safety)
+          echo "::add-mask::$RIOT_KEY"
+
+          # Write the key to a plain‑text file.
+          # The file will be uploaded later; it is NOT printed to the console.
+          echo "$RIOT_KEY" > ./publish-output/RiotSecret.txt
+
+          # (Optional) verify the file exists – do NOT cat its contents!
+          if [ -f "./publish-output/RiotSecret.txt" ]; then
+            echo "✅ RiotSecret.txt created"
+          else
+            echo "❌ Failed to create RiotSecret.txt"
+            exit 1
+          fi
+      - name: List publish output
+        run: |
+          echo "=== Files that will be uploaded ==="
+          ls -R ./publish-output
+
+      - name: Deploy to FTP server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_URL }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./publish-output/          # <-- folder we just created
+          server-dir: ${{ secrets.FTP_SERVER_PATH }}
