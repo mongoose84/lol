@@ -1,20 +1,13 @@
 using LolApi.Riot;
-using Microsoft.Extensions.Options;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton(sp =>
-    sp.GetRequiredService<IOptions<RiotOptions>>().Value);
+Console.WriteLine("Reading Riot API Key from file...");
+RiotApiKey.Read();
+
 
 var app = builder.Build();
 
-
-
-// Expose the root provider for the static wrapper.
-// Do NOT use this for regular DI; it's only for the static façade.
-CuntyMcCuntface.ServiceProvider = app.Services;
 
 var riotServices = new RiotServices();
 
@@ -41,7 +34,5 @@ app.MapGet("/api/by-riot-id/{gameName}/{tagLine}", async (string gameName, strin
         return Results.Problem(detail: ex.Message, statusCode: 500);
     } 
 });
-
-
 
 app.Run();

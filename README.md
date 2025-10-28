@@ -81,7 +81,11 @@ from root
 cd LolApi
 cd lol-api
 ```
-Install a virtual environment
+
+##### Riot API Key
+Add the Riot API key to a file in the lol-api folder and name it RiotSecret.txt
+
+##### Build and run
 
 build and run the applicaiton on Windows
 ```
@@ -93,7 +97,7 @@ build and run the application on Linux Fedora
 dotnet publish -c Release -r linux-x64 --self-contained false -o ./publish/linux
 dotnet ./publish/linux/LolApi.dll
 ```
-create publishable build
+create publishable build for the hosting server
 ```
 dotnet publish -c Release -r win-x86 --self-contained true 
 ```

@@ -46,8 +46,9 @@ namespace LolApi.Riot
             // Parse the JSON to extract the "puuid" field.
             using JsonDocument doc = JsonDocument.Parse(json);
             if (doc.RootElement.TryGetProperty("puuid", out JsonElement puuidElement ))
-            {       
-                return puuidElement.GetString();
+            {
+                var puuid = puuidElement.GetString();
+                return puuid ?? throw new InvalidOperationException("The 'puuid' field is null.");
             }
 
             throw new InvalidOperationException("Response does not contain a 'puuid' field.");
