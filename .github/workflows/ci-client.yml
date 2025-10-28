@@ -1,5 +1,5 @@
 # .github/workflows/client.yml
-name: Client – Vue.js CI & Deploy
+name: Client - Vue.js CI & Deploy
 
 # -------------------------------------------------
 # When to run the workflow
@@ -80,10 +80,10 @@ jobs:
       - name: Ensure dist folder exists
         run: |
           if [ ! -d "./dist" ]; then
-            echo "❌ ./dist does NOT exist – aborting deployment."
+            echo "❌ ./dist does NOT exist - aborting deployment."
             exit 1
           fi
-          echo "✅ ./dist found – proceeding to upload."
+          echo "✅ ./dist found - proceeding to upload."
 
       # -------------------------------------------------
       # 8️⃣ List the files that will be uploaded (debugging aid)

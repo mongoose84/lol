@@ -1,5 +1,5 @@
 # .github/workflows/deploy-api.yml
-name: Deploy .NET API + Riot key
+name: API - ASP .NET API CI & Deploy
 
 # -------------------------------------------------
 # When to run
@@ -54,27 +54,26 @@ jobs:
       # -------------------------------------------------
       # 4️⃣ Publish a **self‑contained** Windows‑x86 binary
       # -------------------------------------------------
-      - name: Publish (self‑contained)
+      - name: Publish (self-contained)
         run: |
-          dotnet publish -c Release -r win-x86 --self-contained true \
-            ./${{ env.PUBLISH_DIR }}
+          dotnet publish -c Release -r win-x86 --self-contained=true  -o./${{ env.PUBLISH_DIR }}
 
       # -------------------------------------------------
       # 5️⃣ ***Write the Riot API key to a file inside the publish folder***
       # -------------------------------------------------
-      - name: Create Riot‑API‑key file (masked)
+      - name: Create Riot API key file (masked)
         env:
           RIOT_KEY: ${{ secrets.RIOT_API_KEY }}
         run: |
           # Hide the value from logs
           echo "::add-mask::$RIOT_KEY"
-          # Write the key – do NOT echo the content
-          echo "$RIOT_KEY" > ./${{ env.PUBLISH_DIR }}/riot_api_key.txt
+          # Write the key - do NOT echo the content
+          echo "$RIOT_KEY" > ./${{ env.PUBLISH_DIR }}/RiotSecret.txt
           # Quick existence check (no cat!)
-          if [ -f "./${{ env.PUBLISH_DIR }}/riot_api_key.txt" ]; then
-            echo "✅ riot_api_key.txt created"
+          if [ -f "./${{ env.PUBLISH_DIR }}/RiotSecret.txt" ]; then
+            echo "✅ RiotSecret.txt created"
           else
-            echo "❌ Failed to create riot_api_key.txt"
+            echo "❌ Failed to create RiotSecret.txt"
             exit 1
           fi
 
