@@ -22,10 +22,8 @@ namespace LolApi.Riot
         {
             try
             {
-                Console.WriteLine("Attempting to read Riot API key from RiotSecret.txt...");
                 // Open the text file using a stream reader.
                 using StreamReader reader = new("RiotSecret.txt");
-                Console.WriteLine("Riot API key file opened successfully.");
                 // Read the stream as a string.
                 _value = reader.ReadToEnd();
             }
