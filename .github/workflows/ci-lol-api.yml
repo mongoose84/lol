@@ -35,6 +35,19 @@ jobs:
         with:
           fetch-depth: 0 # needed for versioning tools
 
+
+      # --------------------------------------------------------------
+      #  Copy the app_offline.htm from the support folder to the main folder
+      # --------------------------------------------------------------
+      - name: Bring site offline (copy app_offline.htm on server)
+        shell: pwsh
+        run: |
+          curl -v --ssl -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" `
+            "ftp://${{ secrets.FTP_URL }}" `
+            -Q "RNFR ${{ secrets.FTP_SERVER_PATH }}/CI-Support/app_offline.htm" `
+            -Q "RNTO ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm"
+          
+
       # -------------------------------------------------
       # Set up .NET SDK
       # -------------------------------------------------
@@ -85,9 +98,9 @@ jobs:
           ls -R ./${{ env.PUBLISH_DIR }}
 
       # -------------------------------------------------
-      # Deploy via FTPS
+      # Deploy new files via FTPS
       # -------------------------------------------------
-      - name: Deploy to FTP server
+      - name: Deploy new files to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_URL }}
@@ -101,3 +114,14 @@ jobs:
           # optional safety flags
           # dry-run: false
           # timeout: 30
+
+       # --------------------------------------------------------------
+      # Bring site back online (delete app_offline.htm)
+      # --------------------------------------------------------------
+      - name: Bring site back online (delete app_offline.htm)
+        shell: pwsh
+        run: |
+          curl -v --ssl -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" `
+            "ftp://${{ secrets.FTP_URL }}" `
+            -Q "DELE ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm"
+
