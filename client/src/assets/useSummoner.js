@@ -29,9 +29,9 @@ export default function useSummoner() {
     
     try {
 
-      var development = false; //change to false when deploying
+      var development = true; //change to false when deploying
       var apiVersion = "/api/v1.0" // update when the backend version is updated
-      var host = development ? "http://localhost:5000" : 'https://lol-api.agileastronaut.com';
+      var host = development ? "http://localhost:5164" : 'https://lol-api.agileastronaut.com';
       var defaultPath = host + apiVersion;
       const { data } = await axios.get(
         

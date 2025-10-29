@@ -38,7 +38,6 @@ app.UseCors("VueClientPolicy");
 
 var riotServices = new RiotServices();
 
-
 app.MapGet($"/", () =>
 {
     Metrics.IncrementHome();

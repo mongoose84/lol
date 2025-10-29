@@ -8,7 +8,6 @@ namespace LolApi.Metric
     /// </summary>
     public static class Metrics
     {
-
         // Endpoint counters
         private static long _homeHits;
         private static long _metricHits;
