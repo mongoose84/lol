@@ -44,8 +44,6 @@ app.MapGet($"{initialPath}/", () =>
     return Results.Ok(new { success = "yes" });
 });
 
-
-
 app.MapGet($"{initialPath}/metrics", () =>
 {
     Metrics.IncrementMetrics();
