@@ -1,6 +1,6 @@
 using System.Net.Http.Metrics;
 using LolApi.Riot;
-using LolApi.Metrics;
+using LolApi.Metric;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,7 +49,7 @@ app.MapGet($"/", () =>
                         ""{initialPath}/Summoner"": ""Retrieve summoner information by game name and tag line."",
                         ""{initialPath}/Winrate"": ""Retrieve summoner winrate by region and puuid""
                      }}";
-
+        
     return Results.Content(sitemap, "application/json");
 });
 

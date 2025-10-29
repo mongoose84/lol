@@ -1,7 +1,7 @@
 
 using System.Reflection;
 
-namespace LolApi.Metrics
+namespace LolApi.Metric
 {
     /// <summary>
     /// Provides a static, read‑only view oof the metrics
@@ -14,10 +14,12 @@ namespace LolApi.Metrics
         private static long _metricHits;
         private static long _winrateHits;
         private static long _summonerHits;
+        private static string _lastUrlCalled = string.Empty;
         public static void IncrementHome() => Interlocked.Increment(ref _homeHits);
         public static void IncrementMetrics() => Interlocked.Increment(ref _metricHits);
         public static void IncrementWinrate() => Interlocked.Increment(ref _winrateHits);
         public static void IncrementSummoner() => Interlocked.Increment(ref _summonerHits);
+        public static void SetLastUrlCalled(string url) => _lastUrlCalled = url;
 
         // Expose the counters
         public static long HomeHits => Interlocked.Read(ref _homeHits);
@@ -35,7 +37,9 @@ namespace LolApi.Metrics
                     ""homeHits"": {HomeHits}, 
                     ""metricHits"": {MetricHits},
                     ""winrateHits"": {WinrateHits},
-                    ""summonerHits"": {SummonerHits} }}";
+                    ""summonerHits"": {SummonerHits},
+                    ""lastUrlCalled"": ""{_lastUrlCalled}""
+                }}";
                     
 
     }

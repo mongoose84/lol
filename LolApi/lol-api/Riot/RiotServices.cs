@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Web;
+using LolApi.Metric;
 
 namespace LolApi.Riot
 {
@@ -15,7 +16,8 @@ namespace LolApi.Riot
             var puuid = await GetRiotIdAsync(encodedGameName, encodedTagLine);
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
             var summonerUrl = RiotUrl.GetSummonerUrl(encodedTagLine, $"/summoner/v4/summoners/by-puuid/{encodedPuuid}");
-
+            Metrics.SetLastUrlCalled("RiotServices.cs ln 19" + summonerUrl);
+            
             // Perform the GET request.
             using var httpClient = new HttpClient();
             
@@ -62,6 +64,7 @@ namespace LolApi.Riot
             var path = $"/account/v1/accounts/by-riot-id/{gameName}/{tagLine}";
             var url = RiotUrl.GetAccountUrl(path);
             using var httpClient = new HttpClient();
+            Metrics.SetLastUrlCalled("RiotServices.cs ln 67" + url);
 
             // Perform the GET request.
             var response = await httpClient.GetAsync(url);
@@ -86,6 +89,7 @@ namespace LolApi.Riot
             var matches = new List<string>();
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
             var matchUrl = RiotUrl.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=10";
+            Metrics.SetLastUrlCalled("RiotServices.cs ln 12" + matchUrl);
 
             using var httpClient = new HttpClient();
             var response = await httpClient.GetAsync(matchUrl);
@@ -103,6 +107,7 @@ namespace LolApi.Riot
         {
             var matchUrl = RiotUrl.GetMatchUrl($"/match/v5/matches/{matchId}");
             using var httpClient = new HttpClient();
+            Metrics.SetLastUrlCalled("RiotServices.cs ln 110" + matchUrl);
             var response = await httpClient.GetAsync(matchUrl);
             response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx
             var json = await response.Content.ReadAsStringAsync();
