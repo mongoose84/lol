@@ -10,8 +10,13 @@ builder.Services.AddCors(options =>
     options.AddPolicy("VueClientPolicy", policy =>
     {
         // 👉 Replace the origin(s) with the exact URL(s) where your Vue app runs.
-        // You can list several origins with .WithOrigins("http://localhost:8080", "http://127.0.0.1:5173")
-        policy.WithOrigins("http://localhost:5173")   // <-- Vue dev server
+        policy.WithOrigins(
+                "http://localhost:5173", // <-- Vue dev server
+                "http://lol.agileastronaut.com",
+                "https://lol.agileastronaut.com",
+                "http://www.lol.agileastronaut.com",
+                "https://www.lol.agileastronaut.com"
+               )   
               .AllowAnyHeader()                      // allow all custom headers (Content-Type, Authorization, etc.)
               .AllowAnyMethod()                      // GET, POST, PUT, DELETE, OPTIONS…
               .AllowCredentials();                   // if you need cookies / Authorization header
