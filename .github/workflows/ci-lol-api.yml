@@ -121,12 +121,17 @@ jobs:
           # timeout: 30
 
       # --------------------------------------------------------------
-      # emove the app_offline.htm marker (brings the site back online)
+      # Bring site back online by deleting app_offline.htm
       # --------------------------------------------------------------
       - name: Bring site back online (delete app_offline.htm)
-        uses: garygrossgarten/github-action-ftp-delete@v2
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          host: ${{ secrets.FTP_URL }}
-          user: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_URL }}
+          username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          remoteFiles: ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm
+          protocol: ftps
+          port: 21
+          local-dir: ./LolApi/ci-support/RemoveAppOffline  # a folder that contains an empty file named app_offline.htm
+          server-dir: ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm
+          dangerous-clean-slate: true
+
