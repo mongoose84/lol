@@ -1,7 +1,12 @@
 {
+  "$schema": "https://json.schemastore.org/nbgv-version.json",
   "version": "1.0",
   "publicRelease": false,
   "cloudBuild": {
-    "setVersionVariables": true
+    "setVersionVariables": true,
+    "fallbackVersion": "1.0.0-ci"
+  },
+  "nugetPackageVersion": {
+    "semVer": 2
   }
 }
