@@ -40,16 +40,17 @@ jobs:
       #  Upload the app_offline.htm marker (puts the site in “offline” mode)
       # --------------------------------------------------------------
       - name: Put site offline (app_offline.htm)
-        uses: SamKirkland/FTP-Deploy-Action@v3.1.1
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_URL }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./LolApi/ci-support/
-          server-dir: ${{ secrets.FTP_SERVER_PATH }}
-          dangerous-clean-slate: false
-          exclude: "**/*"
-          include: "app_offline.htm"
+
+          # Only upload the marker file – we keep everything else untouched
+          local-dir: ./LolApi/ci-support/                    # a folder that only contains app_offline.htm
+          server-dir: ${{ secrets.FTP_SERVER_PATH }}  # root of the web‑site
+          # Force upload even if the file already exists
+          dry-run: false
           
 
       # -------------------------------------------------
