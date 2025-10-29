@@ -31,13 +31,13 @@ jobs:
 
     steps:
       # -------------------------------------------------
-      # 1️⃣ Checkout the repository
+      # Checkout the repository
       # -------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # -------------------------------------------------
-      # 2️⃣ Set up Node (use a supported LTS version)
+      # Set up Node (use a supported LTS version)
       # -------------------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -45,7 +45,7 @@ jobs:
           node-version: '20.x'   # LTS – change only if you really need 22
 
       # -------------------------------------------------
-      # 3️⃣ (Optional) Cache node_modules to speed up CI
+      # (Optional) Cache node_modules to speed up CI
       # -------------------------------------------------
       - name: Cache node_modules
         uses: actions/cache@v4
@@ -56,26 +56,26 @@ jobs:
             ${{ runner.os }}-node-
 
       # -------------------------------------------------
-      # 4️⃣ Install dependencies
+      # Install dependencies
       # -------------------------------------------------
       - name: Install dependencies
         run: npm ci
 
       # -------------------------------------------------
-      # 5️⃣ Run unit tests with coverage (your existing step)
+      # un unit tests with coverage (your existing step)
       # -------------------------------------------------
       - name: Run Vitest with coverage
         run: npm run test:unit:coverage
 
       # -------------------------------------------------
-      # 6️⃣ **Build the production bundle**
+      # **Build the production bundle**
       # -------------------------------------------------
       - name: Build client
         run: npm run build          # make sure your package.json defines a "build" script
         # After this step a folder called `dist/` will exist inside `client/`
 
       # -------------------------------------------------
-      # 7️⃣ Verify that the build output exists (fails fast if not)
+      # Verify that the build output exists (fails fast if not)
       # -------------------------------------------------
       - name: Ensure dist folder exists
         run: |
@@ -86,7 +86,7 @@ jobs:
           echo "✅ ./dist found - proceeding to upload."
 
       # -------------------------------------------------
-      # 8️⃣ List the files that will be uploaded (debugging aid)
+      # List the files that will be uploaded (debugging aid)
       # -------------------------------------------------
       - name: List built files
         run: |
@@ -94,7 +94,7 @@ jobs:
           ls -R ./dist
 
       # -------------------------------------------------
-      # 9️⃣ Deploy via FTPS
+      # Deploy via FTPS
       # -------------------------------------------------
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4

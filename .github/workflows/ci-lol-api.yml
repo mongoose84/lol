@@ -32,13 +32,13 @@ jobs:
 
     steps:
       # -------------------------------------------------
-      # 1️⃣ Checkout the repo
+      # Checkout the repo
       # -------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # -------------------------------------------------
-      # 2️⃣ Set up .NET SDK
+      # Set up .NET SDK
       # -------------------------------------------------
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -46,40 +46,31 @@ jobs:
           dotnet-version: '8.x'          # adjust if you target another version
 
       # -------------------------------------------------
-      # 3️⃣ Restore NuGet packages (optional but clearer logs)
+      # Restore NuGet packages (optional but clearer logs)
       # -------------------------------------------------
       - name: Restore dependencies
         run: dotnet restore
 
       # -------------------------------------------------
-      # 4️⃣ Publish a **self‑contained** Windows‑x86 binary
+      # Publish a **self‑contained** Windows‑x86 binary
       # -------------------------------------------------
       - name: Publish (self-contained)
         run: |
           dotnet publish -c Release -r win-x86 --self-contained=true  -o./${{ env.PUBLISH_DIR }}
 
       # -------------------------------------------------
-      # 5️⃣ ***Write the Riot API key to a file inside the publish folder***
+      # ***Write to the secrets file ***
       # -------------------------------------------------
       - name: Create secret   # runs on the default PowerShell shell
         env:
           RIOT_KEY: ${{ secrets.RIOT_API_KEY }}
           PUBLISH_DIR: ${{ env.PUBLISH_DIR }}   # "publish-output"
         run: |
-          # -------------------------------------------------
-          # Mask the secret so it never appears in the logs
-          # -------------------------------------------------
           Write-Host "::add-mask::$env:RIOT_KEY"
 
-          # -------------------------------------------------
-          # Write the secret to a file inside the publish folder
-          # -------------------------------------------------
           $targetPath = Join-Path -Path $env:PUBLISH_DIR -ChildPath "RiotSecret.txt"
           Set-Content -Path $targetPath -Value $env:RIOT_KEY -Encoding UTF8
 
-          # -------------------------------------------------
-          # Verify the file exists (PowerShell version of `if [ -f … ]`)
-          # -------------------------------------------------
           if (Test-Path -Path $targetPath) {
               Write-Host "✅ File created"
           } else {
@@ -88,7 +79,7 @@ jobs:
           }
 
       # -------------------------------------------------
-      # 6️⃣ Verify the publish folder (helps debugging)
+      # Verify the publish folder (helps debugging)
       # -------------------------------------------------
       - name: List publish output
         run: |
@@ -96,7 +87,7 @@ jobs:
           ls -R ./${{ env.PUBLISH_DIR }}
 
       # -------------------------------------------------
-      # 7️⃣ Deploy via FTPS
+      # Deploy via FTPS
       # -------------------------------------------------
       - name: Deploy to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -107,7 +98,7 @@ jobs:
           protocol: ftps
           port: 21
           # Point to the SAME folder we just verified
-          local-dir: ./${{ env.PUBLISH_DIR }}/
+          local-dir: ./LolApi/lol-api/${{ env.PUBLISH_DIR }}/
           server-dir: ${{ secrets.FTP_SERVER_PATH }}
           # optional safety flags
           # dry-run: false
