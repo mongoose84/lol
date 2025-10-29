@@ -78,7 +78,7 @@ app.MapGet(initialPath + "/summoner/{gameName}/{tagLine}", async (string gameNam
     }
     catch (Exception ex)
     {
-        return Results.Problem(detail: ex.Message, statusCode: 500);
+        return Results.Problem(message: ex.Message, statusCode: 500, detail: ex.StackTrace);
     }
 });
 
@@ -105,7 +105,7 @@ app.MapGet(initialPath + "/winrate/{region}/{puuid}", async (string region, stri
     }
     catch (Exception ex)
     {
-        return Results.Problem(detail: ex.Message, statusCode: 500);
+        return Results.Problem(message: ex.Message, statusCode: 500, detail: ex.StackTrace);
     }
 });
 
