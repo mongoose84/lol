@@ -30,16 +30,17 @@ export default function useSummoner() {
     try {
 
       var development = false; //change to false when deploying
-      var host = development ? 'http://localhost:5000' : 'https://lol-api.agileastronaut.com';
-      
+      var apiVersion = "/api/v1.0" // update when the backend version is updated
+      var host = development ? "http://localhost:5000" : 'https://lol-api.agileastronaut.com';
+      var defaultPath = host + apiVersion;
       const { data } = await axios.get(
         
-         `${host}/api/summoner/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
+         `${defaultPath}/summoner/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`
       );
       summoner.value = data;  
       console.log("DEBUG: summoner response:", summoner.value);
       const response  = await axios.get(
-        `${host}/api/winrate/${tagLine}/${summoner.value.puuid}`
+        `${defaultPath}/winrate/${tagLine}/${summoner.value.puuid}`
       );
       console.log("DEBUG: winrate response:", response.data);
       winRate.value = response.data;
