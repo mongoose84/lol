@@ -30,18 +30,27 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-var initialPath = $"/api/{Metrics.ApiVersion}";
+var apiVersion = "v1.0";
+var initialPath = $"/api/{apiVersion}";
 
-// 2️⃣ Apply the CORS policy globally
+// Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
 
 var riotServices = new RiotServices();
 
 
-app.MapGet($"{initialPath}/", () =>
+app.MapGet($"/", () =>
 {
     Metrics.IncrementHome();
-    return Results.Ok(new { success = "yes" });
+
+    var sitemap =$@"{{  ""Description"": ""Welcome to the League of Legends API. Below are the available endpoints."",  
+                        ""ApiVersion"": ""{apiVersion}"",
+                        ""{initialPath}/Metrics"": ""Metrics available for this API."", 
+                        ""{initialPath}/Summoner"": ""Retrieve summoner information by game name and tag line."",
+                        ""{initialPath}/Winrate"": ""Retrieve summoner winrate by region and puuid""
+                     }}";
+
+    return Results.Content(sitemap, "application/json");
 });
 
 app.MapGet($"{initialPath}/metrics", () =>

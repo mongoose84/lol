@@ -116,12 +116,13 @@ jobs:
           # timeout: 30
 
        # --------------------------------------------------------------
-      # Bring site back online (delete app_offline.htm)
+      # Bring site back online (move te  app_offline.htm to the support folder)
       # --------------------------------------------------------------
       - name: Bring site back online (delete app_offline.htm)
         shell: pwsh
         run: |
           curl -v --ssl -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" `
             "ftp://${{ secrets.FTP_URL }}" `
-            -Q "DELE ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm"
+            -Q "RNFR ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm" `
+            -Q "RNTO ${{ secrets.FTP_SERVER_PATH }}/CI-Support/app_offline.htm"
 

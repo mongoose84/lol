@@ -24,7 +24,6 @@ namespace LolApi.Metrics
         public static long MetricHits => Interlocked.Read(ref _metricHits);
         public static long WinrateHits => Interlocked.Read(ref _winrateHits);
         public static long SummonerHits => Interlocked.Read(ref _summonerHits);
-        public static string ApiVersion { get { return "v1.0"; } }
         public static string BuildNumber =>
             typeof(Metrics).Assembly
                         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
@@ -33,7 +32,6 @@ namespace LolApi.Metrics
         // Helper for the /metrics endpoint
         public static string GetMetricsJson() =>
             $@"{{   ""build"": ""{BuildNumber}"", 
-                    ""apiVersion"": ""{ApiVersion}"",
                     ""homeHits"": {HomeHits}, 
                     ""metricHits"": {MetricHits},
                     ""winrateHits"": {WinrateHits},
