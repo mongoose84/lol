@@ -9,10 +9,6 @@ on:
     branches: [main]
     paths:
       - 'client/**'               # only when something under client/ changes
-  pull_request:
-    branches: [main]
-    paths:
-      - 'client/**'
   workflow_dispatch:               # manual trigger from the UI
 
 # -------------------------------------------------
@@ -105,7 +101,7 @@ jobs:
           protocol: ftps
           port: 21
           # Because we are already inside `client/`, the path is just `dist/`
-          local-dir: ./dist/
+          local-dir: ./client/dist/
           server-dir: ${{ secrets.FTP_CLIENT_PATH }}
           # optional safety flags (uncomment if you want them)
           # dry-run: false
