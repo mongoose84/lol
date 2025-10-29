@@ -36,22 +36,21 @@ jobs:
           fetch-depth: 0 # needed for versioning tools
 
 
-       # --------------------------------------------------------------
+      # --------------------------------------------------------------
       #  Upload the app_offline.htm marker (puts the site in “offline” mode)
       # --------------------------------------------------------------
       - name: Put site offline (app_offline.htm)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        uses: SamKirkland/FTP-Deploy-Action@v3.1.1
         with:
           server: ${{ secrets.FTP_URL }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-
-          # Only upload the marker file – we keep everything else untouched
-          local-dir: ./LolApi/ci-support/                    # a folder that only contains app_offline.htm
-          server-dir: ${{ secrets.FTP_SERVER_PATH }}  # root of the web‑site 
-
-          # Force upload even if the file already exists
-          dry-run: false
+          local-dir: ./LolApi/ci-support/
+          server-dir: ${{ secrets.FTP_SERVER_PATH }}
+          dangerous-clean-slate: false
+          exclude: "**/*"
+          include: "app_offline.htm"
+          
 
       # -------------------------------------------------
       # Set up .NET SDK
@@ -120,10 +119,13 @@ jobs:
           # dry-run: false
           # timeout: 30
 
+       # --------------------------------------------------------------
+      # Bring site back online (overwrite app_offline.htm with empty file)
       # --------------------------------------------------------------
-      # Bring site back online by overwritng app_offline.htm with an empty file
-      # --------------------------------------------------------------
-      - name: Bring site back online (delete app_offline.htm)
+      - name: Bring site back online (overwrite app_offline.htm)
+        run: echo "" > ./LolApi/ci-support/app_offline.htm
+
+      - name: Upload empty app_offline.htm (bring site online)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_URL }}
@@ -131,7 +133,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          local-dir: ./LolApi/ci-support/EmptyAppOffline/  # a folder that contains an empty file named app_offline.htm
+          local-dir: ./LolApi/ci-support/EmptyAppOffline/  # a folder that only contains an empty app_offline.htm
           server-dir: ${{ secrets.FTP_SERVER_PATH }}
-          dangerous-clean-slate: true
+          dry-run: false
 
