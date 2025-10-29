@@ -40,7 +40,7 @@ jobs:
       #  Upload the app_offline.htm marker (puts the site in “offline” mode)
       # --------------------------------------------------------------
       - name: Put site offline (app_offline.htm)
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_URL }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -106,7 +106,7 @@ jobs:
       # Deploy new files via FTPS
       # -------------------------------------------------
       - name: Deploy new files to FTP server
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_URL }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -124,19 +124,9 @@ jobs:
       # emove the app_offline.htm marker (brings the site back online)
       # --------------------------------------------------------------
       - name: Bring site back online (delete app_offline.htm)
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: garygrossgarten/github-action-ftp-delete@v2
         with:
-          server: ${{ secrets.FTP_URL }}
-          username: ${{ secrets.FTP_USERNAME }}
+          host: ${{ secrets.FTP_URL }}
+          user: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-
-          # We only need to delete the marker – no files are uploaded
-          local-dir: ./LolApi/ci-support               # same folder that holds the marker
-          server-dir: ${{ secrets.FTP_SERVER_PATH }}
-
-          # Tell the action to *only* delete files that match the pattern
-          delete: true
-
-          # Exclude everything so the action doesn’t try to sync any other files.
-          # The pattern "**/*" matches all files/folders recursively.
-          exclude: "**/*"
+          remoteFiles: ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm
