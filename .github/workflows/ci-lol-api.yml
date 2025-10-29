@@ -37,20 +37,15 @@ jobs:
 
 
       # --------------------------------------------------------------
-      #  Upload the app_offline.htm marker (puts the site in “offline” mode)
+      #  Copy the app_offline.htm from the support folder to the main folder
       # --------------------------------------------------------------
-      - name: Put site offline (app_offline.htm)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_URL }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-
-          # Only upload the marker file – we keep everything else untouched
-          local-dir: ./LolApi/ci-support/                    # a folder that only contains app_offline.htm
-          server-dir: ${{ secrets.FTP_SERVER_PATH }}  # root of the web‑site
-          # Force upload even if the file already exists
-          dry-run: false
+      - name: Bring site offline (copy app_offline.htm on server)
+        shell: pwsh
+        run: |
+          curl -v --ssl -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" `
+            "ftp://${{ secrets.FTP_URL }}" `
+            -Q "RNFR ${{ secrets.FTP_SERVER_PATH }}/CI-Support/app_offline.htm" `
+            -Q "RNTO ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm"
           
 
       # -------------------------------------------------
@@ -121,20 +116,12 @@ jobs:
           # timeout: 30
 
        # --------------------------------------------------------------
-      # Bring site back online (overwrite app_offline.htm with empty file)
+      # Bring site back online (delete app_offline.htm)
       # --------------------------------------------------------------
-      - name: Bring site back online (overwrite app_offline.htm)
-        run: echo "" > ./LolApi/ci-support/app_offline.htm
-
-      - name: Upload empty app_offline.htm (bring site online)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_URL }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          local-dir: ./LolApi/ci-support/EmptyAppOffline/  # a folder that only contains an empty app_offline.htm
-          server-dir: ${{ secrets.FTP_SERVER_PATH }}
-          dry-run: false
+      - name: Bring site back online (delete app_offline.htm)
+        shell: pwsh
+        run: |
+          curl -v --ssl -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" `
+            "ftp://${{ secrets.FTP_URL }}" `
+            -Q "DELE ${{ secrets.FTP_SERVER_PATH }}/app_offline.htm"
 
