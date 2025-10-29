@@ -35,6 +35,24 @@ jobs:
         with:
           fetch-depth: 0 # needed for versioning tools
 
+
+       # --------------------------------------------------------------
+      #  Upload the app_offline.htm marker (puts the site in “offline” mode)
+      # --------------------------------------------------------------
+      - name: Put site offline (app_offline.htm)
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_URL }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+
+          # Only upload the marker file – we keep everything else untouched
+          local-dir: ./LolApi/ci-support                     # a folder that only contains app_offline.htm
+          server-dir: ${{ secrets.FTP_SERVER_PATH }}  # root of the web‑site 
+
+          # Force upload even if the file already exists
+          dry-run: false
+
       # -------------------------------------------------
       # Set up .NET SDK
       # -------------------------------------------------
@@ -85,10 +103,10 @@ jobs:
           ls -R ./${{ env.PUBLISH_DIR }}
 
       # -------------------------------------------------
-      # Deploy via FTPS
+      # Deploy new files via FTPS
       # -------------------------------------------------
-      - name: Deploy to FTP server
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Deploy new files to FTP server
+        uses: SamKirkland/FTP-Deploy-Action@v4
         with:
           server: ${{ secrets.FTP_URL }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -101,3 +119,24 @@ jobs:
           # optional safety flags
           # dry-run: false
           # timeout: 30
+
+      # --------------------------------------------------------------
+      # emove the app_offline.htm marker (brings the site back online)
+      # --------------------------------------------------------------
+      - name: Bring site back online (delete app_offline.htm)
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_URL }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+
+          # We only need to delete the marker – no files are uploaded
+          local-dir: ./LolApi/ci-support               # same folder that holds the marker
+          server-dir: ${{ secrets.FTP_SERVER_PATH }}
+
+          # Tell the action to *only* delete files that match the pattern
+          delete: true
+
+          # Exclude everything so the action doesn’t try to sync any other files.
+          # The pattern "**/*" matches all files/folders recursively.
+          exclude: "**/*"

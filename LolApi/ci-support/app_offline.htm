@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>We'll be right back — Maintenance</title>
+
+    <!-- Auto-refresh to allow quick recovery when the app is back (adjust seconds as needed) -->
+    <meta http-equiv="refresh" content="30">
+
+    <style>
+        :root{
+            --bg:#0f1724;
+            --card:#0b1220;
+            --accent:#38bdf8;
+            --muted:#94a3b8;
+            --glass: rgba(255,255,255,0.03);
+        }
+        html,body{height:100%}
+        body{
+            margin:0;
+            font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background:
+                radial-gradient(1200px 600px at 10% 10%, rgba(56,189,248,0.06), transparent 8%),
+                radial-gradient(900px 400px at 90% 80%, rgba(167,139,250,0.04), transparent 10%),
+                var(--bg);
+            color:#e6eef8;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:32px;
+            line-height:1.4;
+        }
+
+        .card{
+            width:100%;
+            max-width:880px;
+            background:linear-gradient(180deg,var(--card), rgba(255,255,255,0.02));
+            border-radius:12px;
+            box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+            display:flex;
+            gap:28px;
+            align-items:center;
+            padding:28px;
+            backdrop-filter: blur(6px);
+        }
+
+        .illustration{
+            width:160px;
+            min-width:160px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:12px;
+            border-radius:10px;
+            background:linear-gradient(180deg, rgba(255,255,255,0.02), var(--glass));
+            box-shadow: inset 0 1px rgba(255,255,255,0.02);
+        }
+
+        svg.gear{width:120px;height:120px; display:block}
+        .spin{animation:spin 6s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        .content{flex:1; min-width:0}
+        h1{
+            margin:0 0 8px 0;
+            font-size:20px;
+            letter-spacing: -0.01em;
+        }
+        p.lead{
+            margin:0 0 14px 0;
+            color:var(--muted);
+            font-size:15px;
+        }
+
+        .meta{
+            display:flex;
+            gap:12px;
+            align-items:center;
+            flex-wrap:wrap;
+            color:var(--muted);
+            font-size:13px;
+        }
+
+        .tag{
+            display:inline-flex;
+            gap:10px;
+            align-items:center;
+            padding:8px 10px;
+            border-radius:999px;
+            background:linear-gradient(90deg, rgba(255,255,255,0.012), transparent);
+        }
+
+        .count{
+            font-weight:600;
+            color:var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .actions{
+            margin-left:auto;
+            display:flex;
+            gap:8px;
+        }
+
+        a.btn{
+            text-decoration:none;
+            color:var(--bg);
+            background:var(--accent);
+            padding:10px 14px;
+            border-radius:8px;
+            font-weight:600;
+            font-size:13px;
+            box-shadow: 0 6px 18px rgba(56,189,248,0.08);
+        }
+
+        .note{
+            margin-top:12px;
+            color:var(--muted);
+            font-size:13px;
+        }
+
+        @media (max-width:620px){
+            .card{flex-direction:column; align-items:stretch}
+            .illustration{margin:0 auto}
+            .actions{margin-left:0; width:100%; justify-content:stretch}
+            a.btn{flex:1; text-align:center}
+        }
+    </style>
+</head>
+<body>
+    <main class="card" role="status" aria-live="polite" aria-labelledby="title">
+        <div class="illustration" aria-hidden="true">
+            <!-- simple rotating gear -->
+            <svg class="gear spin" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2">
+                <defs>
+                    <linearGradient id="g" x1="0" x2="1">
+                        <stop offset="0" stop-color="#7dd3fc"/>
+                        <stop offset="1" stop-color="#7c3aed"/>
+                    </linearGradient>
+                </defs>
+                <g transform="translate(50 50)">
+                    <g stroke="url(#g)" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M0-24 L6-30 18-28 26-18 24-6 30 0 24 6 26 18 18 28 6 30 0 24 -6 30 -18 28 -26 18 -24 6 -30 0 -24 -6 -26 -18 -18 -28 -6 -30 Z" fill="none" opacity="0.12"/>
+                        <circle r="18" fill="url(#g)" opacity="0.18"/>
+                        <circle r="9" fill="#071022" />
+                        <circle r="2.5" fill="#9be7ff"/>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <div class="content">
+            <h1 id="title">We'll be right back</h1>
+            <p class="lead">The site is currently offline for maintenance. We're performing updates to improve reliability and performance.</p>
+
+            <div class="meta" aria-hidden="false">
+                <div class="tag" title="Estimated time remaining">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M12 7v5l3 3"></path>
+                    </svg>
+                    <div>Estimated retry in <span id="countdown" class="count">30s</span></div>
+                </div>
+
+                <div class="tag" title="Maintenance status">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 2v4"></path>
+                        <path d="M12 18v4"></path>
+                        <path d="M4.9 4.9l2.8 2.8"></path>
+                        <path d="M16.3 16.3l2.8 2.8"></path>
+                        <path d="M2 12h4"></path>
+                        <path d="M18 12h4"></path>
+                        <path d="M4.9 19.1l2.8-2.8"></path>
+                        <path d="M16.3 7.7l2.8-2.8"></path>
+                    </svg>
+                    <div>Status: <strong style="margin-left:6px;color:#fff">Maintenance</strong></div>
+                </div>
+
+                <div class="actions" role="group" aria-label="Actions">
+                    <a class="btn" href="/" title="Retry loading the site">Retry now</a>
+                </div>
+            </div>
+
+            <div class="note">
+                If the site remains unavailable after a few minutes, please contact support@example.com with any urgent issues.
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Countdown for the meta refresh. Adjust REFRESH_SECONDS to match meta refresh content.
+        (function(){
+            const REFRESH_SECONDS = 30;
+            let remaining = REFRESH_SECONDS;
+            const el = document.getElementById('countdown');
+            function tick(){
+                remaining--;
+                if (remaining <= 0) {
+                    el.textContent = '0s';
+                    return;
+                }
+                el.textContent = remaining + 's';
+                setTimeout(tick, 1000);
+            }
+            el.textContent = remaining + 's';
+            setTimeout(tick, 1000);
+        })();
+    </script>
+</body>
+</html></div></g>
