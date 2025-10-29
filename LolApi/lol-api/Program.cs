@@ -1,4 +1,7 @@
+using System.Net.Http.Metrics;
 using LolApi.Riot;
+using LolApi.Metrics;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,18 +30,33 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+var initialPath = $"/api/{Metrics.ApiVersion}";
 
 // 2️⃣ Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
 
 var riotServices = new RiotServices();
 
-app.MapGet("/", () => Results.Ok(new { success = "yes" }));
 
-app.MapGet("/api/getnumber", () => Results.Ok(new { number = 429 }));
-
-app.MapGet("/api/summoner/{gameName}/{tagLine}", async (string gameName, string tagLine) =>
+app.MapGet($"{initialPath}/", () =>
 {
+    Metrics.IncrementHome();
+    return Results.Ok(new { success = "yes" });
+});
+
+
+
+app.MapGet($"{initialPath}/metrics", () =>
+{
+    Metrics.IncrementMetrics();
+    var metrics = Metrics.GetMetricsJson();
+    return Results.Content(metrics, "application/json");
+});
+
+app.MapGet(initialPath + "/summoner/{gameName}/{tagLine}", async (string gameName, string tagLine) =>
+{
+    Metrics.IncrementSummoner();
+
     try
     {
         // Basic validation
@@ -57,8 +75,10 @@ app.MapGet("/api/summoner/{gameName}/{tagLine}", async (string gameName, string 
     }
 });
 
-app.MapGet("/api/winrate/{region}/{puuid}", async (string region, string puuid) =>
+app.MapGet(initialPath + "/winrate/{region}/{puuid}", async (string region, string puuid) =>
 {
+    Metrics.IncrementWinrate();
+
     try
     {
         // Basic validation
