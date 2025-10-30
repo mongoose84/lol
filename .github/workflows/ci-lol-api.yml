@@ -89,6 +89,28 @@ jobs:
               exit 1
           }
 
+      # ...existing code...
+      - name: Publish (self-contained)
+        run: |
+          dotnet publish -c Release -r win-x86 --self-contained=true  -o./${{ env.PUBLISH_DIR }}
+
+      # --- ENABLE IIS stdout logging so ANCM errors are written ---
+      - name: Enable IIS stdout logging and create logs folder
+        shell: pwsh
+        run: |
+          $pub = Join-Path (Get-Location) "${{ env.PUBLISH_DIR }}"
+          $webConfig = Join-Path $pub "web.config"
+          if (Test-Path $webConfig) {
+              (Get-Content $webConfig) -replace 'stdoutLogEnabled="false"', 'stdoutLogEnabled="true"' |
+                Set-Content -Path $webConfig -Force -Encoding UTF8
+              Write-Host "✅ web.config updated to enable stdout logging"
+          } else {
+              Write-Warning "web.config not found in publish folder"
+          }
+          # create logs folder so IIS can write logs after deployment
+          New-Item -Path (Join-Path $pub "logs") -ItemType Directory -Force | Out-Null
+# ...existing code...
+
       # -------------------------------------------------
       # Verify the publish folder (helps debugging)
       # -------------------------------------------------
@@ -118,20 +140,6 @@ jobs:
       - name: Publish (self-contained)
         run: |
           dotnet publish -c Release -r win-x86 --self-contained=true  -o./${{ env.PUBLISH_DIR }}
-
-      # --- ENABLE IIS stdout logging so ANCM errors are written ---
-      - name: Enable IIS stdout logging and create logs folder
-        shell: pwsh
-        run: |
-          $pub = Join-Path (Get-Location) "${{ env.PUBLISH_DIR }}"
-          $webConfig = Join-Path $pub "web.config"
-          if (Test-Path $webConfig) {
-              (Get-Content $webConfig) -replace 'stdoutLogEnabled="false"', 'stdoutLogEnabled="true"' |
-                Set-Content -Path $webConfig -Force -Encoding UTF8
-              Write-Host "✅ web.config updated to enable stdout logging"
-          } else {
-              Write-Warning "web.config not found in publish folder"
-          }
 
        # --------------------------------------------------------------
       # Bring site back online (move te  app_offline.htm to the support folder)
