@@ -26,10 +26,8 @@ client/dist-ssr
 client/*.local
 client/coverage
 
-# LolApi
-LolApi/bin
-LolApi/obj
-LolApi/lol-api/bin
-LolApi/lol-api/obj
-LolApi/lol-api/publish
-LolApi/lol-api/RiotSecret.txt
+# server
+server/RiotProxy/bin
+server/RiotProxy/obj
+server/RiotProxy/publish
+server/RiotProxy/RiotSecret.txt

@@ -1,9 +1,9 @@
-namespace LolApi.Riot
+namespace RiotProxy.Infrastructure
 {
     /// <summary>
     /// Provides a static, read‑only view of the Riot API key.
     /// </summary>
-    public static class RiotApiKey
+    public static class ApiKey
     {
         private static string _value = string.Empty;
         public static string Value {
@@ -31,6 +31,8 @@ namespace LolApi.Riot
             {
                 Console.WriteLine("The RiotSecret could not be read:");
                 Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+                
             }
         }
     }
