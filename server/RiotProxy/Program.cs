@@ -27,28 +27,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-builder.Logging.AddEventLog();
-
-
-
 var app = builder.Build();
-
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("Application starting up");
 
 // Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
-logger.LogInformation("CORS policy applied.");
 
 var riotProxyApplication = new RiotProxyApplication(app);
-logger.LogInformation("RiotProxy application configured.");
 
 riotProxyApplication.Configure();
-
-logger.LogInformation("RiotProxy application configured.");
 
 app.Run();
 
