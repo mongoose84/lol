@@ -15,8 +15,6 @@ namespace RiotProxy.Application
             _app = app;
             _initialPath = "/api/" + _apiVersion;
 
-
-
             var homeEndPoint = new HomeEndpoint(_apiVersion, _initialPath);
             _endpoints.Add(homeEndPoint);
 
@@ -32,11 +30,15 @@ namespace RiotProxy.Application
 
         public void Configure()
         {
+            var logger = _app.Services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Reading API Key");
             // Read the Riot API key from file
             ApiKey.Read();
 
+            logger.LogInformation("API Key read");
             foreach (var endpoint in _endpoints)
             {
+                logger.LogInformation($"Configuring endpoint {endpoint.Route}");
                 endpoint.Configure(_app);
             }
         }

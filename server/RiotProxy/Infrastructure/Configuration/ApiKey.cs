@@ -31,6 +31,8 @@ namespace RiotProxy.Infrastructure
             {
                 Console.WriteLine("The RiotSecret could not be read:");
                 Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+                
             }
         }
     }
