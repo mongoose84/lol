@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Web;
 using RiotProxy.Utilities;
 
-namespace LolApi.Riot
+namespace RiotProxy.Infrastructure
 {
     public class RiotServices
     {

@@ -1,13 +1,9 @@
-using System.Net.Http.Metrics;
-using LolApi.Riot;
 using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
 
 
 var builder = WebApplication.CreateBuilder(args);
-
-ApiKey.Read();
 
 builder.Services.AddCors(options =>
 {
@@ -32,85 +28,14 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-var apiVersion = "v1.0";
-var initialPath = $"/api/{apiVersion}";
 
 // Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
 
-var riotServices = new RiotServices();
+var riotProxyApplication = new RiotProxyApplication(app);
+riotProxyApplication.Configure();
 
-Console.WriteLine("Type of app = " + app.GetType().FullName);
-
-app.MapGet($"/", () =>
-{
-    Metrics.IncrementHome();
-
-    var sitemap =$@"{{  ""Description"": ""Welcome to the League of Legends API. Below are the available endpoints."",  
-                        ""ApiVersion"": ""{apiVersion}"",
-                        ""{initialPath}/Metrics"": ""Metrics available for this API."", 
-                        ""{initialPath}/Summoner"": ""Retrieve summoner information by game name and tag line."",
-                        ""{initialPath}/Winrate"": ""Retrieve summoner winrate by region and puuid""
-                     }}";
-        
-    return Results.Content(sitemap, "application/json");
-});
-
-app.MapGet($"{initialPath}/metrics", () =>
-{
-    Metrics.IncrementMetrics();
-    var metrics = Metrics.GetMetricsJson();
-    return Results.Content(metrics, "application/json");
-});
-
-app.MapGet(initialPath + "/summoner/{gameName}/{tagLine}", async (string gameName, string tagLine) =>
-{
-    Metrics.IncrementSummoner();
-
-    try
-    {
-        // Basic validation
-        if (string.IsNullOrWhiteSpace(gameName) || string.IsNullOrWhiteSpace(tagLine))
-        {
-            return Results.BadRequest(new { error = "Both gameName and tagLine must be provided." });
-        }
-
-        var summoner = await riotServices.GetSummonerAsync(gameName, tagLine);
-
-        return Results.Content(summoner, "application/json");
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(detail: ex.Message + ex.StackTrace, statusCode: 500);
-    }
-});
-
-app.MapGet(initialPath + "/winrate/{region}/{puuid}", async (string region, string puuid) =>
-{
-    Metrics.IncrementWinrate();
-
-    try
-    {
-        // Basic validation
-        if (string.IsNullOrWhiteSpace(region))
-        {
-            return Results.BadRequest(new { error = "Region is null or whitespace" });
-        }
-
-        if (string.IsNullOrWhiteSpace(puuid))
-        {
-            return Results.BadRequest(new { error = "Puuid is null or whitespace" });
-        }
-
-        var winrate = await riotServices.GetWinrateAsync(region, puuid);
-
-        return Results.Ok(winrate);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(detail: ex.Message + ex.StackTrace, statusCode: 500);
-    }
-});
 
 app.Run();
+
 

@@ -1,6 +1,5 @@
-using RiotProxy.Infrastructure;
 
-namespace LolApi.Riot
+namespace RiotProxy.Infrastructure
 {
     public static class RiotUrl
     {

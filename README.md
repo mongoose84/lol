@@ -78,8 +78,8 @@ npm run test:unit:coverage // Run all tests once and show test coverage
 #### Server part
 from root
 ```
-cd LolApi
-cd lol-api
+cd server
+cd RiotProxy
 ```
 
 ##### Riot API Key
