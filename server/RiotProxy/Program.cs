@@ -1,11 +1,13 @@
 using System.Net.Http.Metrics;
 using LolApi.Riot;
-using LolApi.Metric;
+using RiotProxy.Utilities;
+using RiotProxy.Infrastructure;
+using RiotProxy.Application;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-RiotApiKey.Read();
+ApiKey.Read();
 
 builder.Services.AddCors(options =>
 {
@@ -37,6 +39,8 @@ var initialPath = $"/api/{apiVersion}";
 app.UseCors("VueClientPolicy");
 
 var riotServices = new RiotServices();
+
+Console.WriteLine("Type of app = " + app.GetType().FullName);
 
 app.MapGet($"/", () =>
 {

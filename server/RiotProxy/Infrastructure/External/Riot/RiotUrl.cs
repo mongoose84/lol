@@ -1,3 +1,5 @@
+using RiotProxy.Infrastructure;
+
 namespace LolApi.Riot
 {
     public static class RiotUrl
@@ -20,20 +22,20 @@ namespace LolApi.Riot
 
         public static string GetAccountUrl(string path)
         {
-            return $"https://europe.api.riotgames.com/riot{path}?api_key={RiotApiKey.Value}";
+            return $"https://europe.api.riotgames.com/riot{path}?api_key={ApiKey.Value}";
         }
 
         public static string GetMatchUrl(string path)
         {
-            return $"https://europe.api.riotgames.com/lol{path}?api_key={RiotApiKey.Value}";
+            return $"https://europe.api.riotgames.com/lol{path}?api_key={ApiKey.Value}";
         }
 
         public static string GetSummonerUrl(string region, string path)
         {
             var regionUpper = region.ToUpper();
             var regionCode = _regionMapping.ContainsKey(regionUpper) ? _regionMapping[regionUpper] : throw new ArgumentException($"Invalid region code: {region}");
-            
-            return $"https://{regionCode}.api.riotgames.com/lol{path}?api_key={RiotApiKey.Value}";
+
+            return $"https://{regionCode}.api.riotgames.com/lol{path}?api_key={ApiKey.Value}";
         }
     }
 }

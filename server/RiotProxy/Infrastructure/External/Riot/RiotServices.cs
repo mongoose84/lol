@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Web;
-using LolApi.Metric;
+using RiotProxy.Utilities;
 
 namespace LolApi.Riot
 {

@@ -1,7 +1,7 @@
 
 using System.Reflection;
 
-namespace LolApi.Metric
+namespace RiotProxy.Utilities
 {
     /// <summary>
     /// Provides a static, read‑only view oof the metrics

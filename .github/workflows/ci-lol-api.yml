@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'LolApi/**'          # only trigger when API code changes
+      - 'server/**'          # only trigger when API code changes
   workflow_dispatch:         # manual trigger from the UI
 
 # -------------------------------------------------
@@ -24,7 +24,7 @@ jobs:
     defaults:
       # Every `run:` step will start in the project folder
       run:
-        working-directory: LolApi/lol-api
+        working-directory: server/RiotProxy
 
     steps:
       # -------------------------------------------------
@@ -109,7 +109,7 @@ jobs:
           protocol: ftps
           port: 21
           # Point to the SAME folder we just verified
-          local-dir: ./LolApi/lol-api/${{ env.PUBLISH_DIR }}/
+          local-dir: ./server/RiotProxy/${{ env.PUBLISH_DIR }}/
           server-dir: ${{ secrets.FTP_SERVER_PATH }}
           # optional safety flags
           # dry-run: false
