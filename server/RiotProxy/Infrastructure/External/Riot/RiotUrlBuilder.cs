@@ -1,7 +1,9 @@
 
+using Microsoft.AspNetCore.DataProtection;
+
 namespace RiotProxy.Infrastructure
 {
-    public static class RiotUrl
+    public static class RiotUrlBuilder
     {
         private static readonly Dictionary<string, string> _regionMapping = new Dictionary<string, string>
         {
@@ -21,12 +23,12 @@ namespace RiotProxy.Infrastructure
 
         public static string GetAccountUrl(string path)
         {
-            return $"https://europe.api.riotgames.com/riot{path}?api_key={ApiKey.Value}";
+            return $"https://europe.api.riotgames.com/riot{path}?api_key={Secrets.ApiKey}";
         }
 
         public static string GetMatchUrl(string path)
         {
-            return $"https://europe.api.riotgames.com/lol{path}?api_key={ApiKey.Value}";
+            return $"https://europe.api.riotgames.com/lol{path}?api_key={Secrets.ApiKey}";
         }
 
         public static string GetSummonerUrl(string region, string path)
@@ -34,7 +36,7 @@ namespace RiotProxy.Infrastructure
             var regionUpper = region.ToUpper();
             var regionCode = _regionMapping.ContainsKey(regionUpper) ? _regionMapping[regionUpper] : throw new ArgumentException($"Invalid region code: {region}");
 
-            return $"https://{regionCode}.api.riotgames.com/lol{path}?api_key={ApiKey.Value}";
+            return $"https://{regionCode}.api.riotgames.com/lol{path}?api_key={Secrets.ApiKey}";
         }
     }
 }

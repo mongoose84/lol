@@ -5,6 +5,11 @@ using RiotProxy.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Read secrets needed for the program
+Secrets.Initialize();
+
+Console.WriteLine(Secrets.DatabaseConnectionString);
+
 builder.Services.AddCors(options =>
 {
     // Give the policy a name so you can refer to it later
@@ -17,20 +22,24 @@ builder.Services.AddCors(options =>
                 "https://lol.agileastronaut.com",
                 "http://www.lol.agileastronaut.com",
                 "https://www.lol.agileastronaut.com"
-               )   
+               )
               .AllowAnyHeader()                      // allow all custom headers (Content-Type, Authorization, etc.)
               .AllowAnyMethod()                      // GET, POST, PUT, DELETE, OPTIONS…
               .AllowCredentials();                   // if you need cookies / Authorization header
-              
+
         // If you want to allow *any* origin (only for development!), use:
         // policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
 
+
+
 var app = builder.Build();
 
 // Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
+
+
 
 var riotProxyApplication = new RiotProxyApplication(app);
 

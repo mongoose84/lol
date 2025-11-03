@@ -85,6 +85,17 @@ cd RiotProxy
 ##### Riot API Key
 Add the Riot API key to a file in the lol-api folder and name it RiotSecret.txt
 
+##### Database connection string
+add a database connection string to the dotnet secrets store for development
+
+```
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:LumoDatabase" "Server=127.0.0.1;Port=3306;Database=lumo;Uid=myuser;Pwd=mypassword;"
+```
+Verify that it has been stored
+```
+dotnet user-secrets list
+```
 ##### Build and run
 
 build and run the applicaiton on Windows

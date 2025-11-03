@@ -15,7 +15,7 @@ namespace RiotProxy.Infrastructure
 
             var puuid = await GetRiotIdAsync(encodedGameName, encodedTagLine);
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
-            var summonerUrl = RiotUrl.GetSummonerUrl(encodedTagLine, $"/summoner/v4/summoners/by-puuid/{encodedPuuid}");
+            var summonerUrl = RiotUrlBuilder.GetSummonerUrl(encodedTagLine, $"/summoner/v4/summoners/by-puuid/{encodedPuuid}");
             Metrics.SetLastUrlCalled("RiotServices.cs ln 19" + summonerUrl);
             
             // Perform the GET request.
@@ -62,7 +62,7 @@ namespace RiotProxy.Infrastructure
         {
             // Build the full request URI.
             var path = $"/account/v1/accounts/by-riot-id/{gameName}/{tagLine}";
-            var url = RiotUrl.GetAccountUrl(path);
+            var url = RiotUrlBuilder.GetAccountUrl(path);
             using var httpClient = new HttpClient();
             Metrics.SetLastUrlCalled("RiotServices.cs ln 67" + url);
 
@@ -88,7 +88,7 @@ namespace RiotProxy.Infrastructure
         {
             var matches = new List<string>();
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
-            var matchUrl = RiotUrl.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=10";
+            var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=10";
             Metrics.SetLastUrlCalled("RiotServices.cs ln 12" + matchUrl);
 
             using var httpClient = new HttpClient();
@@ -105,7 +105,7 @@ namespace RiotProxy.Infrastructure
 
         private async Task<JsonDocument> GetMatchAsync(string matchId)
         {
-            var matchUrl = RiotUrl.GetMatchUrl($"/match/v5/matches/{matchId}");
+            var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/{matchId}");
             using var httpClient = new HttpClient();
             Metrics.SetLastUrlCalled("RiotServices.cs ln 110" + matchUrl);
             var response = await httpClient.GetAsync(matchUrl);

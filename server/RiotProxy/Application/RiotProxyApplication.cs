@@ -30,16 +30,11 @@ namespace RiotProxy.Application
 
         public void Configure()
         {
-            // Read the Riot API key from file
-            ApiKey.Read();
-
             foreach (var endpoint in _endpoints)
             {
                 endpoint.Configure(_app);
             }
         }
-
-
     }
 
 }
