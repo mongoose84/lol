@@ -7,9 +7,9 @@ namespace RiotProxy.Application
     public class MetricsEndpoint : IEndpoint
     {
         public string Route { get; }
-        public MetricsEndpoint(string initialPath)
+        public MetricsEndpoint(string basePath)
         {
-            Route = $"{initialPath}/metrics";
+            Route = $"{basePath}/metrics";
         }
 
         public void Configure(WebApplication app)

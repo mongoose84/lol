@@ -1,14 +1,14 @@
 using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
+using RiotProxy.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Read secrets needed for the program
 Secrets.Initialize();
-
-Console.WriteLine(Secrets.DatabaseConnectionString);
 
 builder.Services.AddCors(options =>
 {
@@ -32,19 +32,25 @@ builder.Services.AddCors(options =>
     });
 });
 
+// register EF Core DbContext and repository
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(Secrets.DatabaseConnectionString);
+});
 
+builder.Services.AddScoped<PersonRepository>();
 
 var app = builder.Build();
 
 // Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
 
-
-
 var riotProxyApplication = new RiotProxyApplication(app);
 
 riotProxyApplication.Configure();
 
-app.Run();
 
+
+
+app.Run();
 

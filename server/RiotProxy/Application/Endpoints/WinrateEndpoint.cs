@@ -9,10 +9,10 @@ namespace RiotProxy.Application
         private IRiotApiClient _riotApiClient;
 
         public string Route { get; }
-        public WinrateEndpoint(string initialPath, IRiotApiClient riotApiClient)
+        public WinrateEndpoint(string basePath, IRiotApiClient riotApiClient)
         {
             _riotApiClient = riotApiClient;
-            Route = initialPath + "/winrate/{region}/{puuid}";
+            Route = basePath + "/winrate/{region}/{puuid}";
         }
 
         public void Configure(WebApplication app)

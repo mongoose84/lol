@@ -6,12 +6,12 @@ namespace RiotProxy.Application
     public class HomeEndpoint : IEndpoint
     {
         private readonly string _apiVersion;
-        private readonly string _initialPath;
+        private readonly string _basePath;
         public string Route { get; } = "/";
-        public HomeEndpoint(string apiVersion, string initialPath)
+        public HomeEndpoint(string apiVersion, string basePath)
         {
             _apiVersion = apiVersion;
-            _initialPath = initialPath;
+            _basePath = basePath;
         }
 
         public void Configure(WebApplication app)
@@ -22,9 +22,9 @@ namespace RiotProxy.Application
 
                 var sitemap = $@"{{  ""Description"": ""Welcome to the League of Legends API. Below are the available endpoints."",  
                                     ""ApiVersion"": ""{_apiVersion}"",
-                                    ""{_initialPath}/Metrics"": ""Metrics available for this API."", 
-                                    ""{_initialPath}/Summoner"": ""Retrieve summoner information by game name and tag line."",
-                                    ""{_initialPath}/Winrate"": ""Retrieve summoner winrate by region and puuid""
+                                    ""{_basePath}/Metrics"": ""Metrics available for this API."", 
+                                    ""{_basePath}/Summoner"": ""Retrieve summoner information by game name and tag line."",
+                                    ""{_basePath}/Winrate"": ""Retrieve summoner winrate by region and puuid""
                                 }}";
 
                 return Results.Content(sitemap, "application/json");

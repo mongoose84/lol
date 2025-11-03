@@ -9,10 +9,10 @@ namespace RiotProxy.Application
 
         public string Route { get; }
 
-        public SummonerEndpoint(string initialPath, IRiotApiClient riotApiClient)
+        public SummonerEndpoint(string basePath, IRiotApiClient riotApiClient)
         {
             _riotApiClient = riotApiClient;
-            Route = initialPath + "/summoner/{gameName}/{tagLine}";
+            Route = basePath + "/summoner/{gameName}/{tagLine}";
         }
 
         public void Configure(WebApplication app)
