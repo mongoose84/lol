@@ -8,7 +8,7 @@ namespace RiotProxy.Application
         private readonly WebApplication _app;
         private readonly string _apiVersion = "v1.0";
         private readonly string _initialPath;
-        private readonly RiotServices _riotServices = new RiotServices();
+        private readonly IRiotApiClient _riotApi = new RiotApiClient();
         private readonly IList<IEndpoint> _endpoints = new List<IEndpoint>();
         public RiotProxyApplication(WebApplication app)
         {
@@ -21,10 +21,10 @@ namespace RiotProxy.Application
             var metricsEndpoint = new MetricsEndpoint(_initialPath);
             _endpoints.Add(metricsEndpoint);
 
-            var summonerEndpoint = new SummonerEndpoint(_initialPath, _riotServices);
+            var summonerEndpoint = new SummonerEndpoint(_initialPath, _riotApi);
             _endpoints.Add(summonerEndpoint);
 
-            var winrateEndpoint = new WinrateEndpoint(_initialPath, _riotServices);
+            var winrateEndpoint = new WinrateEndpoint(_initialPath, _riotApi);
             _endpoints.Add(winrateEndpoint);
         }
 

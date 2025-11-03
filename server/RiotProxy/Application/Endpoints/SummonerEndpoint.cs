@@ -5,13 +5,13 @@ namespace RiotProxy.Application
 {
     public class SummonerEndpoint : IEndpoint
     {
-        private RiotServices _riotServices;
+        private IRiotApiClient _riotApiClient;
 
         public string Route { get; }
 
-        public SummonerEndpoint(string initialPath, RiotServices riotServices)
+        public SummonerEndpoint(string initialPath, IRiotApiClient riotApiClient)
         {
-            _riotServices = riotServices;
+            _riotApiClient = riotApiClient;
             Route = initialPath + "/summoner/{gameName}/{tagLine}";
         }
 
@@ -29,7 +29,7 @@ namespace RiotProxy.Application
                         return Results.BadRequest(new { error = "Both gameName and tagLine must be provided." });
                     }
 
-                    var summoner = await _riotServices.GetSummonerAsync(gameName, tagLine);
+                    var summoner = await _riotApiClient.GetSummonerAsync(gameName, tagLine);
 
                     return Results.Content(summoner, "application/json");
                 }

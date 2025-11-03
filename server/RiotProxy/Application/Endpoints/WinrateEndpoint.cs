@@ -6,12 +6,12 @@ namespace RiotProxy.Application
 {
     public class WinrateEndpoint : IEndpoint
     {       
-        private RiotServices _riotServices;
+        private IRiotApiClient _riotApiClient;
 
         public string Route { get; }
-        public WinrateEndpoint(string initialPath, RiotServices riotServices)
+        public WinrateEndpoint(string initialPath, IRiotApiClient riotApiClient)
         {
-            _riotServices = riotServices;
+            _riotApiClient = riotApiClient;
             Route = initialPath + "/winrate/{region}/{puuid}";
         }
 
@@ -34,7 +34,7 @@ namespace RiotProxy.Application
                         return Results.BadRequest(new { error = "Puuid is null or whitespace" });
                     }
 
-                    var winrate = await _riotServices.GetWinrateAsync(region, puuid);
+                    var winrate = await _riotApiClient.GetWinrateAsync(region, puuid);
 
                     return Results.Ok(winrate);
                 }
