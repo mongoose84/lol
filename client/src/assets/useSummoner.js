@@ -49,6 +49,5 @@ export default function useSummoner() {
     loading,
     error,
     fetchSummoner,
-    createUser,
   };
 }
