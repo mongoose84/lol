@@ -1,19 +1,27 @@
-// vite.config.ts
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  },
   test: {
-    globals: true,               // enables `describe`, `it`, `expect` globally
-    environment: 'happy-dom',    // DOM for mounting components
-    setupFiles: ['./test/setup.ts'], // optional – see next step
+    globals: true,
+    environment: 'happy-dom',
+    setupFiles: ['./test/setup.ts'],
     coverage: {
-      provider: 'v8',               // default, works out‑of‑the‑box
-      reporter: ['text', 'html'],   // text goes to console, html creates ./coverage
-      reportsDirectory: './coverage', // <-- explicit folder (optional, default is ./coverage)
-      all: true,                    // instrument *all* files, not only those imported in tests
-      include: ['src/**/*.ts', 'src/**/*.vue'], // adjust to your source pattern
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      reportsDirectory: './coverage',
+      all: true,
+      include: ['src/**/*.ts', 'src/**/*.vue'],
     },
   },
 })
