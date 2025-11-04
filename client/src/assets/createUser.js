@@ -1,24 +1,22 @@
-import { ref } from 'vue';
 import axios from 'axios';
 
-var development = true;
+const development = true;
 
-// ---------- Create User ----------
-export default async function createUser(userName) {
-    try {
-      var apiVersion = "/api/v1.0"
-      var host = development ? "http://localhost:5000" : 'https://lol-api.agileastronaut.com';
-      var defaultPath = host + apiVersion;
+// POST /api/v1.0/user/{username} with JSON body { accounts: [{ gameName, tagLine }, ...] }
+export default async function createUser(username, accounts) {
+  const apiVersion = '/api/v1.0';
+  const host = development ? 'http://localhost:5000' : 'https://lol-api.agileastronaut.com';
+  const base = host + apiVersion;
 
-      const response = await axios.post(
-        `${defaultPath}/user/${encodeURIComponent(userName)}`
-      );
-      
-      console.log("DEBUG: user created:", response.data);
-      return response.data;
-    } catch (e) {
-      const errorMsg = e.response?.data?.error || e.message;
-      console.error("Failed to create user:", errorMsg);
-      throw new Error(errorMsg);
-    }
+  try {
+    const response = await axios.post(
+      `${base}/user/${encodeURIComponent(username)}`,
+      { accounts },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    return response.data;
+  } catch (e) {
+    const errorMsg = e?.response?.data?.error || e.message || 'Request failed';
+    throw new Error(errorMsg);
   }
+}

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RiotProxy.Application.DTOs;
 using RiotProxy.Domain;
 using RiotProxy.Infrastructure.Persistence;
 
@@ -15,16 +16,57 @@ namespace RiotProxy.Application
 
         public void Configure(WebApplication app)
         {
-
-            app.MapPost(Route, async (string userName, [FromServices] UserRepository repo) =>
+            ConfigurePost(app);
+            ConfigureGet(app);
+        }
+        
+        private void ConfigureGet(WebApplication app)
+        {
+            app.MapGet(Route, async (string userName, [FromBody] CreateUserRequest body, [FromServices] UserRepository repo) =>
             {
                 try
                 {
-                    var user = await repo.CreateUserAsync(userName);
+                    var user = await repo.GetByUserNameAsync(userName);
                     if (user is null)
                     {
                         return Results.NotFound("User not found");
                     }
+
+                    Console.WriteLine($"Created user: {user.UserName} with ID: {user.UserId} ");
+
+                    return Results.Content(user.ToJson(), "application/json");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                    return Results.BadRequest("Error when getting user");
+                }
+            });
+        }
+
+        private void ConfigurePost(WebApplication app)
+        {
+            app.MapPost(Route, async (
+                string userName,
+                [FromBody] CreateUserRequest body,
+                [FromServices] UserRepository userRepo
+                ) =>
+            {
+                ValidateBody(body);
+
+                try
+                {
+
+                    var user = await userRepo.CreateUserAsync(userName);
+                    if (user is null)
+                    {
+                        return Results.NotFound("User not found");
+                    }
+
+                    Console.WriteLine($"Created user: {user.UserName} with ID: {user.UserId} ");
+
+
                     return Results.Content(user.ToJson(), "application/json");
                 }
                 catch (InvalidOperationException ex)
@@ -49,28 +91,33 @@ namespace RiotProxy.Application
                     Console.WriteLine(ex.StackTrace);
                     return Results.BadRequest("Error when getting user");
                 }
-
-
             });
-            
-            app.MapGet(Route, async (string userName, [FromServices] UserRepository repo) =>
+        }
+
+        private void ValidateBody(CreateUserRequest body)
+        {
+            if (body == null)
             {
-                try
+                throw new ArgumentException("Request body is null");
+            }
+
+            if (body.Accounts == null || body.Accounts.Count == 0)
+            {
+                throw new ArgumentException("Accounts list is null or empty");
+            }
+
+            foreach (var account in body.Accounts)
+            {
+                if (string.IsNullOrWhiteSpace(account.GameName))
                 {
-                    var user =  await repo.GetByUserNameAsync(userName);
-                    if (user is null)
-                    {
-                        return Results.NotFound("User not found");
-                    }
-                    return Results.Content(user.ToJson(), "application/json");
+                    throw new ArgumentException("GameName is null or empty");
                 }
-                catch (Exception ex)
+
+                if (string.IsNullOrWhiteSpace(account.TagLine))
                 {
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.StackTrace);
-                    return Results.BadRequest("Error when getting user");
+                    throw new ArgumentException("TagLine is null or empty");
                 }
-            });
+            }
         }
     }
 }
