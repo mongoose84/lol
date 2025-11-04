@@ -2,7 +2,6 @@ using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
 using RiotProxy.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,13 +31,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-// register EF Core DbContext and repository
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    options.UseSqlServer(Secrets.DatabaseConnectionString);
-});
-
-builder.Services.AddScoped<PersonRepository>();
+builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+builder.Services.AddScoped<UserRepository>();
 
 var app = builder.Build();
 
