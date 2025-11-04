@@ -46,7 +46,6 @@ namespace RiotProxy.Application
                     {
                         return Results.NotFound("User not found");
                     }
-                    Console.WriteLine("User found: " + user.UserName + " with ID " + user.UserId);
                     return Results.Content(user.ToJson(), "application/json");
                 }
                 catch (Exception ex)

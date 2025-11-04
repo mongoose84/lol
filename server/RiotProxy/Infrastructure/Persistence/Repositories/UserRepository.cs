@@ -34,7 +34,6 @@ namespace RiotProxy.Infrastructure.Persistence
         
         public async Task<User?> CreateUserAsync(string userName)
         {
-            Console.WriteLine("Creating user in database...");
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
@@ -44,18 +43,16 @@ namespace RiotProxy.Infrastructure.Persistence
                 VALUES (@userName);
                 SELECT LAST_INSERT_ID();             
             ";
-            Console.WriteLine("SQL prepared.");
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@userName", userName);
-            Console.WriteLine("Parameters added.");
             //    ExecuteScalarAsync returns the first column of the first row,
             //    which is the value produced by LAST_INSERT_ID().
             var result = await cmd.ExecuteScalarAsync();
-            Console.WriteLine("Command executed.");
+            
             // If the insert failed for any reason, result could be null.
             if (result == null || result == DBNull.Value)
                 return null;
-            Console.WriteLine("User created");
+
             // 4️⃣ Build and return the User object.
             var newUser = new User
             {

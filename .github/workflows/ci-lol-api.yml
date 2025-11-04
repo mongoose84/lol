@@ -76,7 +76,7 @@ jobs:
       - name: Create RIOT API secret   # runs on the default PowerShell shell
         env:
           RIOT_KEY: ${{ secrets.RIOT_API_KEY }}
-          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}/Secrets   # "publish-output"
+          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}   # "publish-output"
         run: |
           Write-Host "::add-mask::$env:RIOT_KEY"
 
@@ -96,7 +96,7 @@ jobs:
       - name: Create database secret   # runs on the default PowerShell shell
         env:
           DB_CONNECTIONSTRING: ${{ secrets.LOL_DB_CONNECTIONSTRING }}
-          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}/Secrets   # "publish-output"
+          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}   # "publish-output"
         run: |
           Write-Host "::add-mask::$env:DB_CONNECTIONSTRING"
 

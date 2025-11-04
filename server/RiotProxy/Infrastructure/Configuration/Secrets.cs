@@ -3,7 +3,7 @@ namespace RiotProxy.Infrastructure
     public static class Secrets
     {
         private static bool _initialized = false;
-        private static readonly string SecretsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Secrets");
+        private static readonly string SecretsFolder = AppDomain.CurrentDomain.BaseDirectory;
 
         public static string ApiKey { get; private set; } = string.Empty;
         public static string DatabaseConnectionString { get; private set; } = string.Empty;

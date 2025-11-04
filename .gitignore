@@ -30,5 +30,5 @@ client/coverage
 server/RiotProxy/bin
 server/RiotProxy/obj
 server/RiotProxy/publish
-server/RiotProxy/Secrets/RiotSecret.txt
-server/RiotProxy/Secrets/DatabaseSecret.txt
+server/RiotProxy/RiotSecret.txt
+server/RiotProxy/DatabaseSecret.txt

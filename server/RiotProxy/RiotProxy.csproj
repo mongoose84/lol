@@ -24,9 +24,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Secrets\**\*">
+    <None Update="DatabaseSecret.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="RiotSecret.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
