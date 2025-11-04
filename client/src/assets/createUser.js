@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
-var development = true;
+var development = false;
 
 // ---------- Create User ----------
 export default async function createUser(userName) {
