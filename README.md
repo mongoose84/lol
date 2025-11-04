@@ -78,16 +78,24 @@ npm run test:unit:coverage // Run all tests once and show test coverage
 #### Server part
 from root
 ```
-cd LolApi
-cd lol-api
+cd server
+cd RiotProxy
 ```
 
 ##### Riot API Key
-Add the Riot API key to a file in the lol-api folder and name it RiotSecret.txt
+Add the Riot API key to a file in the RiotProxy folder and name it RiotSecret.txt
 
+##### Database connection string
+add a database connection string to the RiotProxy folder and name it DatabaseSecret.txt
+
+it should have this format
+
+```
+Server=your.mysql.server;Port=yourPort;Database=Database_name;User Id=User_Id;Password=yourPassword;SslMode=Preferred;
+```
 ##### Build and run
 
-build and run the applicaiton on Windows
+build and run the application on Windows
 ```
 dotnet build
 dotnet run
@@ -95,7 +103,7 @@ dotnet run
 build and run the application on Linux Fedora
 ```
 dotnet publish -c Release -r linux-x64 --self-contained false -o ./publish/linux
-dotnet ./publish/linux/LolApi.dll
+dotnet ./publish/linux/RiotProxy.dll
 ```
 create publishable build for the hosting server
 ```
