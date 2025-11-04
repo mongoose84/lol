@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace RiotProxy.Infrastructure
 {
     public interface IRiotApiClient

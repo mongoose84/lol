@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-using RiotProxy.Infrastructure;
 using RiotProxy.Utilities;
 
 namespace RiotProxy.Application

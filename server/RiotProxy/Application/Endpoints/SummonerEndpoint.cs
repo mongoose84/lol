@@ -5,7 +5,7 @@ namespace RiotProxy.Application
 {
     public class SummonerEndpoint : IEndpoint
     {
-        private IRiotApiClient _riotApiClient;
+        private readonly IRiotApiClient _riotApiClient;
 
         public string Route { get; }
 
@@ -33,9 +33,18 @@ namespace RiotProxy.Application
 
                     return Results.Content(summoner, "application/json");
                 }
-                catch (Exception ex)
+                catch (ArgumentException argEx)
                 {
-                    return Results.Problem(detail: ex.Message + ex.StackTrace, statusCode: 500);
+                    return Results.BadRequest(new { error = argEx.Message });
+                }
+                catch (System.Net.Http.HttpRequestException httpEx)
+                {
+                    return Results.Problem(detail: httpEx.Message, statusCode: 502);
+                }
+                catch (Exception ex) when (!(ex is OutOfMemoryException) && !(ex is StackOverflowException) && !(ex is ThreadAbortException))
+                {
+                    // Log ex here if logging is available
+                    return Results.Problem(detail: "An unexpected error occurred.", statusCode: 500);
                 }
             });
         }

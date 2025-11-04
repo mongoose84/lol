@@ -95,7 +95,7 @@ Server=your.mysql.server;Port=yourPort;Database=Database_name;User Id=User_Id;Pa
 ```
 ##### Build and run
 
-build and run the applicaiton on Windows
+build and run the application on Windows
 ```
 dotnet build
 dotnet run
@@ -103,7 +103,7 @@ dotnet run
 build and run the application on Linux Fedora
 ```
 dotnet publish -c Release -r linux-x64 --self-contained false -o ./publish/linux
-dotnet ./publish/linux/LolApi.dll
+dotnet ./publish/linux/RiotProxy.dll
 ```
 create publishable build for the hosting server
 ```

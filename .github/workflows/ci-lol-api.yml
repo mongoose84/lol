@@ -137,7 +137,7 @@ jobs:
           # timeout: 30
 
        # --------------------------------------------------------------
-      # Bring site back online (move te  app_offline.htm to the support folder)
+      # Bring site back online (move the app_offline.htm to the support folder)
       # --------------------------------------------------------------
       - name: Bring site back online (delete app_offline.htm)
         shell: pwsh

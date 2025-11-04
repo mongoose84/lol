@@ -1,5 +1,3 @@
-using System;
-
 namespace RiotProxy.Domain
 {
     public record SummonerId

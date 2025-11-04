@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using RiotProxy.Infrastructure;
 using RiotProxy.Utilities;
 
@@ -6,7 +5,7 @@ namespace RiotProxy.Application
 {
     public class WinrateEndpoint : IEndpoint
     {       
-        private IRiotApiClient _riotApiClient;
+        private readonly IRiotApiClient _riotApiClient;
 
         public string Route { get; }
         public WinrateEndpoint(string basePath, IRiotApiClient riotApiClient)
@@ -38,7 +37,10 @@ namespace RiotProxy.Application
 
                     return Results.Ok(winrate);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (
+                    ex is not OutOfMemoryException &&
+                    ex is not StackOverflowException &&
+                    ex is not ThreadAbortException)
                 {
                     return Results.Problem(detail: ex.Message + ex.StackTrace, statusCode: 500);
                 }
