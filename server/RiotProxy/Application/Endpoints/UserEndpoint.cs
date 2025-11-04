@@ -20,13 +20,12 @@ namespace RiotProxy.Application
             {
                 try
                 {
-
-                    var user = await repo.GetByUserNameAsync(userName);
+                    var user = await repo.CreateUserAsync(userName);
                     if (user is null)
                     {
                         return Results.NotFound("User not found");
                     }
-                    return Results.Ok(user.ToJson());
+                    return Results.Content(user.ToJson(), "application/json");
                 }
                 catch(Exception ex)
                 {
