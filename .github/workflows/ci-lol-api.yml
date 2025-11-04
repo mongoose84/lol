@@ -73,15 +73,35 @@ jobs:
       # -------------------------------------------------
       # ***Write to the secrets file ***
       # -------------------------------------------------
-      - name: Create secret   # runs on the default PowerShell shell
+      - name: Create RIOT API secret   # runs on the default PowerShell shell
         env:
           RIOT_KEY: ${{ secrets.RIOT_API_KEY }}
-          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}   # "publish-output"
+          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}/Secrets   # "publish-output"
         run: |
           Write-Host "::add-mask::$env:RIOT_KEY"
 
           $targetPath = Join-Path -Path $env:PUBLISH_DIR -ChildPath "RiotSecret.txt"
           Set-Content -Path $targetPath -Value $env:RIOT_KEY -Encoding UTF8
+
+          if (Test-Path -Path $targetPath) {
+              Write-Host "✅ File created"
+          } else {
+              Write-Error "❌ Failed to create file"
+              exit 1
+          }
+
+                # -------------------------------------------------
+      # ***Write to the secrets file ***
+      # -------------------------------------------------
+      - name: Create database secret   # runs on the default PowerShell shell
+        env:
+          DB_CONNECTIONSTRING: ${{ secrets.LOL_DB_CONNECTIONSTRING }}
+          PUBLISH_DIR: ${{ env.PUBLISH_DIR }}/Secrets   # "publish-output"
+        run: |
+          Write-Host "::add-mask::$env:DB_CONNECTIONSTRING"
+
+          $targetPath = Join-Path -Path $env:PUBLISH_DIR -ChildPath "DatabaseSecret.txt"
+          Set-Content -Path $targetPath -Value $env:DB_CONNECTIONSTRING -Encoding UTF8
 
           if (Test-Path -Path $targetPath) {
               Write-Host "✅ File created"
