@@ -9,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Read secrets needed for the program
 Secrets.Initialize();
 
+builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<GamerRepository>();
+
 builder.Services.AddCors(options =>
 {
     // Give the policy a name so you can refer to it later
@@ -31,20 +35,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
-builder.Services.AddScoped<UserRepository>();
+
 
 var app = builder.Build();
 
 // Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
 
+// Enable routing and map endpoints
 var riotProxyApplication = new RiotProxyApplication(app);
-
-riotProxyApplication.Configure();
-
-
-
+riotProxyApplication.ConfigureEndpoints();
 
 app.Run();
 

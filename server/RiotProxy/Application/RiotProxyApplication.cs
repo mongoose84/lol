@@ -32,7 +32,7 @@ namespace RiotProxy.Application
             _endpoints.Add(personEndpoint);
         }
 
-        public void Configure()
+        public void ConfigureEndpoints()
         {
             Console.WriteLine("Available endpoints:");
             foreach (var endpoint in _endpoints)

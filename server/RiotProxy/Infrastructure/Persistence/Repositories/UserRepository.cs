@@ -7,10 +7,10 @@ namespace RiotProxy.Infrastructure.Persistence
     {
         private readonly IDbConnectionFactory _factory;
 
-    public UserRepository(IDbConnectionFactory factory)
-    {
-        _factory = factory;
-    }
+        public UserRepository(IDbConnectionFactory factory)
+        {
+            _factory = factory;
+        }
 
         public async Task<User?> GetByUserNameAsync(string userName)
         {

@@ -7,11 +7,13 @@ namespace RiotProxy.Application
 {
     public class UserEndpoint : IEndpoint
     {
+        private IRiotApiClient _riotApiClient;
         public string Route { get; }
 
-        public UserEndpoint(string basePath)
+        public UserEndpoint(string basePath, IRiotApiClient riotApiClient)
         {
             Route = basePath + "/user/{userName}";
+            _riotApiClient = riotApiClient;
         }
 
         public void Configure(WebApplication app)
@@ -50,7 +52,8 @@ namespace RiotProxy.Application
             app.MapPost(Route, async (
                 string userName,
                 [FromBody] CreateUserRequest body,
-                [FromServices] UserRepository userRepo
+                [FromServices] UserRepository userRepo,
+                [FromServices] GamerRepository gamerRepo
                 ) =>
             {
                 ValidateBody(body);
@@ -61,11 +64,25 @@ namespace RiotProxy.Application
                     var user = await userRepo.CreateUserAsync(userName);
                     if (user is null)
                     {
-                        return Results.NotFound("User not found");
+                        return Results.NotFound("Could not create user");
                     }
 
                     Console.WriteLine($"Created user: {user.UserName} with ID: {user.UserId} ");
 
+                    // Get Puuid from Riot API
+                    foreach (var account in body.Accounts)
+                    {
+                        var puuid = await _riotApiClient.GetPuuidAsync(account);
+
+                        // Create Gamer entry
+                        var gamer = await gamerRepo.CreateGamerAsync(user.UserId, puuid, account.GameName, account.TagLine);
+                        if (gamer is null)
+                        {
+                            return Results.NotFound("Could not create gamer");
+                        }
+
+                        Console.WriteLine($"Created gamer: {gamer.GameName}#{gamer.TagLine} with Puuid: {gamer.Puuid} ");
+                    }
 
                     return Results.Content(user.ToJson(), "application/json");
                 }
