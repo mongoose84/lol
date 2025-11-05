@@ -1,15 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using RiotProxy.Application.DTOs;
-using RiotProxy.Domain;
 using RiotProxy.Infrastructure.External.Riot;
-using RiotProxy.Infrastructure.Persistence;
+using RiotProxy.Infrastructure.Database.Repositories;
 
 namespace RiotProxy.Application.Endpoints
 {
     public class UserEndpoint : IEndpoint
     {
         private IRiotApiClient _riotApiClient;
-        private string basePath;
 
         public string Route { get; }
 
@@ -17,11 +15,6 @@ namespace RiotProxy.Application.Endpoints
         {
             Route = basePath + "/user/{userName}";
             _riotApiClient = riotApiClient;
-        }
-
-        public UserEndpoint(string basePath)
-        {
-            this.basePath = basePath;
         }
 
         public void Configure(WebApplication app)

@@ -1,8 +1,5 @@
 using RiotProxy.Application.Endpoints;
-using RiotProxy.Infrastructure;
 using RiotProxy.Infrastructure.External.Riot;
-using RiotProxy.Infrastructure.Persistence;
-using RiotProxy.Utilities;
 
 namespace RiotProxy.Application
 {
