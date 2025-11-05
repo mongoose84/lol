@@ -102,8 +102,8 @@ dotnet run
 ```
 build and run the application on Linux Fedora
 ```
-dotnet publish -c Release -r linux-x64 --self-contained false -o ./publish/linux
-dotnet ./publish/linux/RiotProxy.dll
+dotnet publish -c Release -r linux-x64 --self-contained false
+dotnet bin/Release/net9.0/linux-x64/publish/RiotProxy.dll
 ```
 create publishable build for the hosting server
 ```

@@ -1,6 +1,5 @@
-using RiotProxy.Infrastructure;
-using RiotProxy.Infrastructure.Persistence;
-using RiotProxy.Utilities;
+using RiotProxy.Application.Endpoints;
+using RiotProxy.Infrastructure.External.Riot;
 
 namespace RiotProxy.Application
 {
@@ -28,11 +27,11 @@ namespace RiotProxy.Application
             var winrateEndpoint = new WinrateEndpoint(_basePath, _riotApi);
             _endpoints.Add(winrateEndpoint);
 
-            var personEndpoint = new UserEndpoint(_basePath);
+            var personEndpoint = new UserEndpoint(_basePath, _riotApi);
             _endpoints.Add(personEndpoint);
         }
 
-        public void Configure()
+        public void ConfigureEndpoints()
         {
             Console.WriteLine("Available endpoints:");
             foreach (var endpoint in _endpoints)

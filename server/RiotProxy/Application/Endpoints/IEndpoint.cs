@@ -1,4 +1,4 @@
-namespace RiotProxy.Application;
+namespace RiotProxy.Application.Endpoints;
 
 /// <summary>
 /// Represents a generic endpoint interface for handling API requests

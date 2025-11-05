@@ -1,16 +1,16 @@
-using RiotProxy.Domain;
 using MySqlConnector;
+using RiotProxy.Domain.Entities;
 
-namespace RiotProxy.Infrastructure.Persistence
+namespace RiotProxy.Infrastructure.Database.Repositories
 {
     public class UserRepository
     {
         private readonly IDbConnectionFactory _factory;
 
-    public UserRepository(IDbConnectionFactory factory)
-    {
-        _factory = factory;
-    }
+        public UserRepository(IDbConnectionFactory factory)
+        {
+            _factory = factory;
+        }
 
         public async Task<User?> GetByUserNameAsync(string userName)
         {

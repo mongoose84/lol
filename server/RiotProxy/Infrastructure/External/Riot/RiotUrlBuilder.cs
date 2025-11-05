@@ -1,7 +1,7 @@
 
 using Microsoft.AspNetCore.DataProtection;
 
-namespace RiotProxy.Infrastructure
+namespace RiotProxy.Infrastructure.External.Riot
 {
     public static class RiotUrlBuilder
     {

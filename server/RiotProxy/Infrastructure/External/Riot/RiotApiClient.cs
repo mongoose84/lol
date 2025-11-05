@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Web;
 using RiotProxy.Utilities;
 
-namespace RiotProxy.Infrastructure
+namespace RiotProxy.Infrastructure.External.Riot
 {
     public class RiotApiClient : IRiotApiClient
     {
@@ -13,7 +13,7 @@ namespace RiotProxy.Infrastructure
             var encodedGameName = Uri.EscapeDataString(gameName);
             var encodedTagLine = Uri.EscapeDataString(tagLine);
 
-            var puuid = await GetRiotIdAsync(encodedGameName, encodedTagLine);
+            var puuid = await GetPuuidAsync(encodedGameName, encodedTagLine);
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
             var summonerUrl = RiotUrlBuilder.GetSummonerUrl(encodedTagLine, $"/summoner/v4/summoners/by-puuid/{encodedPuuid}");
             Metrics.SetLastUrlCalled("RiotServices.cs ln 19" + summonerUrl);
@@ -57,8 +57,8 @@ namespace RiotProxy.Infrastructure
             double winrate = (double)wins / totalGames * 100;
             return winrate; // Placeholder value
         }
-        
-        private async Task<string> GetRiotIdAsync(string gameName, string tagLine)
+
+        public async Task<string> GetPuuidAsync(string gameName, string tagLine)
         {
             // Build the full request URI.
             var path = $"/account/v1/accounts/by-riot-id/{gameName}/{tagLine}";

@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
-var development = false;
+var development = true;
 
 export default function useSummoner() {
 

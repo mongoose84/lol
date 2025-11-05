@@ -1,13 +1,18 @@
 using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
-using RiotProxy.Infrastructure.Persistence;
+using RiotProxy.Infrastructure.Database;
+using RiotProxy.Infrastructure.Database.Repositories;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Read secrets needed for the program
 Secrets.Initialize();
+
+builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<GamerRepository>();
 
 builder.Services.AddCors(options =>
 {
@@ -31,20 +36,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
-builder.Services.AddScoped<UserRepository>();
+
 
 var app = builder.Build();
 
 // Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
 
+// Enable routing and map endpoints
 var riotProxyApplication = new RiotProxyApplication(app);
-
-riotProxyApplication.Configure();
-
-
-
+riotProxyApplication.ConfigureEndpoints();
 
 app.Run();
 

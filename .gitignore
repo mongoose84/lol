@@ -32,3 +32,6 @@ server/RiotProxy/obj
 server/RiotProxy/publish
 server/RiotProxy/RiotSecret.txt
 server/RiotProxy/DatabaseSecret.txt
+
+# published files
+publish/**/*
