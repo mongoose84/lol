@@ -1,24 +1,5 @@
 <template>
-  <section class="search" >
-    <form @submit.prevent="goToChampionView" class="search-form">
-      <!-- Text input ---------------------------------------------------- -->
-      <input
-        v-model="query"
-        type="text"
-        placeholder="Search for your champion name…"
-        required
-        class="search-input"
-      />
-
-      <h1>#</h1>
-
-      <!-- ▼ Dropdown ---------------------------------------------------- -->
-      <select v-model="tagLine" class="tagLine-select select-dark">
-        <option v-for="opt in options" :key="opt.value" :value="opt.value">
-          {{ opt.label }}
-        </option>
-      </select>
-    </form>
+  <section class="search">
 
     <!-- User Creation Section -->
     <div class="user-creation">
@@ -26,19 +7,11 @@
         {{ showUserForm ? 'Cancel' : 'Create User' }}
       </button>
 
-      <div v-if="showUserForm" class="user-form">
-        <input
-          v-model="newUserName"
-          type="text"
-          placeholder="Enter username…"
-          class="search-input"
-        />
-        <button @click="handleCreateUser" class="create-user-btn">
-          Submit
-        </button>
-        <p v-if="userCreationError" class="error">{{ userCreationError }}</p>
-        <p v-if="userCreationSuccess" class="success">{{ userCreationSuccess }}</p>
-      </div>
+      <CreateUserPopup
+        v-if="showUserForm"
+        :onClose="() => (showUserForm = false)"
+        :onCreate="handleCreateUser"
+      />
     </div>
   </section>
 </template>
@@ -46,20 +19,20 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import createUser from '@/assets/createUser.js'
-
+import CreateUserPopup from './CreateUserPopup.vue' // Import the CreateUserPopup component
+import { createUser } from '@/assets/createUser.js'
 // ----- Options for the dropdown ---------------------------------------
 const options = [
-  { value: 'NA',   label: 'NA' },
-  { value: 'EUW',   label: 'EUW' },
-  { value: 'EUNE',label: 'EUNE' },
-  { value: 'KR',   label: 'KR' },
-  { value: 'JP',   label: 'JP' },
-  { value: 'LAN',  label: 'LAN' },
-  { value: 'LAS',  label: 'LAS' },
-  { value: 'OCE',  label: 'OCE' },
-  { value: 'RU',   label: 'RU' },
-  { value: 'TR',   label: 'TR' },
+  { value: 'NA', label: 'NA' },
+  { value: 'EUW', label: 'EUW' },
+  { value: 'EUNE', label: 'EUNE' },
+  { value: 'KR', label: 'KR' },
+  { value: 'JP', label: 'JP' },
+  { value: 'LAN', label: 'LAN' },
+  { value: 'LAS', label: 'LAS' },
+  { value: 'OCE', label: 'OCE' },
+  { value: 'RU', label: 'RU' },
+  { value: 'TR', label: 'TR' },
 ]
 
 // ----- Reactive state -------------------------------------------------
@@ -69,10 +42,6 @@ const router = useRouter()
 
 // User creation state
 const showUserForm = ref(false)
-const newUserName = ref('')
-const userCreationError = ref(null)
-const userCreationSuccess = ref(null)
-
 
 // ----- Methods --------------------------------------------------------
 function goToChampionView() {
@@ -87,31 +56,26 @@ function goToChampionView() {
   router.push({ name: 'ChampionStats', query: queryParams })
 }
 
-async function handleCreateUser() {
-  userCreationError.value = null
-  userCreationSuccess.value = null
-
-  const trimmed = newUserName.value.trim()
-  if (!trimmed) {
-    userCreationError.value = 'Username cannot be empty'
-    return
-  }
-
-  try {
-    await createUser(trimmed)
-    userCreationSuccess.value = `User "${trimmed}" created successfully!`
-    newUserName.value = ''
-    setTimeout(() => {
-      showUserForm.value = false
-      userCreationSuccess.value = null
-    }, 2000)
-  } catch (err) {
-    userCreationError.value = err.message || 'Failed to create user'
+async function handleCreateUser(userNames) {
+  // Handle user creation logic here
+  for (const userName of userNames) {
+    const trimmedGameName = userName.gameName.trim();
+    const trimmedTagline = userName.tagline.trim();
+    
+    if (trimmedGameName && trimmedTagline) {
+      try {
+        await createUser(trimmedGameName, trimmedTagline); // Call your API to create the user
+        console.log(`User "${trimmedGameName}" created successfully!`);
+      } catch (err) {
+        console.error(`Failed to create user "${trimmedGameName}":`, err.message);
+      }
+    }
   }
 }
 </script>
 
 <style scoped>
+
 .search {
   display: flex;
   flex-direction: column;

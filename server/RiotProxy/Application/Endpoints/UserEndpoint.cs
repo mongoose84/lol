@@ -1,30 +1,46 @@
 using Microsoft.AspNetCore.Mvc;
-using RiotProxy.Domain;
-using RiotProxy.Infrastructure.Persistence;
+using RiotProxy.Application.DTOs;
+using RiotProxy.Infrastructure.External.Riot;
+using RiotProxy.Infrastructure.Database.Repositories;
 
-namespace RiotProxy.Application
+namespace RiotProxy.Application.Endpoints
 {
     public class UserEndpoint : IEndpoint
     {
+        private readonly IRiotApiClient _riotApiClient;
+
         public string Route { get; }
 
-        public UserEndpoint(string basePath)
+        public UserEndpoint(string basePath, IRiotApiClient riotApiClient)
         {
             Route = basePath + "/user/{userName}";
+            _riotApiClient = riotApiClient;
         }
 
         public void Configure(WebApplication app)
         {
-
-            app.MapPost(Route, async (string userName, [FromServices] UserRepository repo) =>
+            ConfigurePost(app);
+            ConfigureGet(app);
+        }
+        
+        private void ConfigureGet(WebApplication app)
+        {
+            app.MapGet(Route, async (
+                string userName,
+                [FromBody] CreateUserRequest body,
+                [FromServices] UserRepository userRepo
+                ) =>
             {
                 try
                 {
-                    var user = await repo.CreateUserAsync(userName);
+                    var user = await userRepo.GetByUserNameAsync(userName);
                     if (user is null)
                     {
                         return Results.NotFound("User not found");
                     }
+
+                    Console.WriteLine($"Created user: {user.UserName} with ID: {user.UserId} ");
+
                     return Results.Content(user.ToJson(), "application/json");
                 }
                 catch (InvalidOperationException ex)
@@ -49,28 +65,97 @@ namespace RiotProxy.Application
                     Console.WriteLine(ex.StackTrace);
                     return Results.BadRequest("Error when getting user");
                 }
-
-
             });
-            
-            app.MapGet(Route, async (string userName, [FromServices] UserRepository repo) =>
+        }
+
+        private void ConfigurePost(WebApplication app)
+        {
+            app.MapPost(Route, async (
+                string userName,
+                [FromBody] CreateUserRequest body,
+                [FromServices] UserRepository userRepo,
+                [FromServices] GamerRepository gamerRepo
+                ) =>
             {
+                ValidateBody(body);
+
                 try
                 {
-                    var user =  await repo.GetByUserNameAsync(userName);
+                    var user = await userRepo.CreateUserAsync(userName);
                     if (user is null)
                     {
-                        return Results.NotFound("User not found");
+                        return Results.NotFound("Could not create user");
                     }
-                    return Results.Content(user.ToJson(), "application/json");
+
+                    Console.WriteLine($"Created user: {user.UserName} with ID: {user.UserId} ");
+
+                    // Get Puuid from Riot API
+                    foreach (var account in body.Accounts)
+                    {
+                        var puuid = await _riotApiClient.GetPuuidAsync(account.GameName, account.TagLine);
+
+                        // Create Gamer entry
+                        var gamerCreated = await gamerRepo.CreateGamerAsync(user.UserId, puuid, account.GameName, account.TagLine);
+                        if (!gamerCreated)
+                        {
+                            // Log error but continue
+                            Console.WriteLine($"Could not create gamer for account: {account.GameName}#{account.TagLine}");
+                            continue;
+                        }
+
+                    }
+
+                    return Results.Ok("{\"message\":\"User and gamers created successfully\"}");
                 }
-                catch (Exception ex)
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                    return Results.BadRequest("Invalid operation when getting user");
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                    return Results.BadRequest("Invalid argument when getting user");
+                }
+                catch (Exception ex) when (
+                    !(ex is OutOfMemoryException) &&
+                    !(ex is StackOverflowException) &&
+                    !(ex is ThreadAbortException)
+                )
                 {
                     Console.WriteLine(ex.Message);
                     Console.WriteLine(ex.StackTrace);
                     return Results.BadRequest("Error when getting user");
                 }
             });
+        }
+
+        private void ValidateBody(CreateUserRequest body)
+        {
+            if (body == null)
+            {
+                throw new ArgumentException("Request body is null");
+            }
+
+            if (body.Accounts == null || body.Accounts.Count == 0)
+            {
+                throw new ArgumentException("Accounts list is null or empty");
+            }
+
+            foreach (var account in body.Accounts)
+            {
+                if (string.IsNullOrWhiteSpace(account.GameName))
+                {
+                    throw new ArgumentException("GameName is null or empty");
+                }
+
+                if (string.IsNullOrWhiteSpace(account.TagLine))
+                {
+                    throw new ArgumentException("TagLine is null or empty");
+                }
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 using MySqlConnector;
 
-namespace RiotProxy.Infrastructure
+namespace RiotProxy.Infrastructure.Database
 {
     public interface IDbConnectionFactory
     {

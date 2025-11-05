@@ -1,7 +1,8 @@
 using RiotProxy.Infrastructure;
+using RiotProxy.Infrastructure.External.Riot;
 using RiotProxy.Utilities;
 
-namespace RiotProxy.Application
+namespace RiotProxy.Application.Endpoints
 {
     public class SummonerEndpoint : IEndpoint
     {

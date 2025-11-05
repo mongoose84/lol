@@ -1,4 +1,4 @@
-namespace RiotProxy.Domain
+namespace RiotProxy.Domain.Entities
 {
     public class Gamer
     {

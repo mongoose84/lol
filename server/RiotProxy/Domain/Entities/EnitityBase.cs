@@ -1,14 +1,20 @@
 using System.Text.Json;
 
-namespace RiotProxy.Domain;
-
-public class EntityBase
+namespace RiotProxy.Domain.Entities
 {
-    public string ToJson()
+    public abstract class EntityBase
     {
-        return JsonSerializer.Serialize(this, new JsonSerializerOptions
+        private static readonly JsonSerializerOptions s_options = new()
         {
             WriteIndented = true
-        });
+        };
+
+        public string ToJson()
+        {
+            // Use runtime type so derived properties are included
+            return JsonSerializer.Serialize(this, GetType(), s_options);
+        }
+
+        public override string ToString() => ToJson();
     }
 }
