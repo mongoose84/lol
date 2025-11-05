@@ -7,7 +7,7 @@ namespace RiotProxy.Application.Endpoints
 {
     public class UserEndpoint : IEndpoint
     {
-        private IRiotApiClient _riotApiClient;
+        private readonly IRiotApiClient _riotApiClient;
 
         public string Route { get; }
 
@@ -43,7 +43,23 @@ namespace RiotProxy.Application.Endpoints
 
                     return Results.Content(user.ToJson(), "application/json");
                 }
-                catch (Exception ex)
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                    return Results.BadRequest("Invalid operation when getting user");
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                    return Results.BadRequest("Invalid argument when getting user");
+                }
+                catch (Exception ex) when (
+                    !(ex is OutOfMemoryException) &&
+                    !(ex is StackOverflowException) &&
+                    !(ex is ThreadAbortException)
+                )
                 {
                     Console.WriteLine(ex.Message);
                     Console.WriteLine(ex.StackTrace);
