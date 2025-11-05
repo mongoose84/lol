@@ -1,19 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using RiotProxy.Application.DTOs;
 using RiotProxy.Domain;
+using RiotProxy.Infrastructure.External.Riot;
 using RiotProxy.Infrastructure.Persistence;
 
-namespace RiotProxy.Application
+namespace RiotProxy.Application.Endpoints
 {
     public class UserEndpoint : IEndpoint
     {
         private IRiotApiClient _riotApiClient;
+        private string basePath;
+
         public string Route { get; }
 
         public UserEndpoint(string basePath, IRiotApiClient riotApiClient)
         {
             Route = basePath + "/user/{userName}";
             _riotApiClient = riotApiClient;
+        }
+
+        public UserEndpoint(string basePath)
+        {
+            this.basePath = basePath;
         }
 
         public void Configure(WebApplication app)
@@ -72,7 +80,7 @@ namespace RiotProxy.Application
                     // Get Puuid from Riot API
                     foreach (var account in body.Accounts)
                     {
-                        var puuid = await _riotApiClient.GetPuuidAsync(account);
+                        var puuid = await _riotApiClient.GetPuuidAsync(account.GameName, account.TagLine);
 
                         // Create Gamer entry
                         var gamer = await gamerRepo.CreateGamerAsync(user.UserId, puuid, account.GameName, account.TagLine);
@@ -81,7 +89,7 @@ namespace RiotProxy.Application
                             return Results.NotFound("Could not create gamer");
                         }
 
-                        Console.WriteLine($"Created gamer: {gamer.GameName}#{gamer.TagLine} with Puuid: {gamer.Puuid} ");
+                        Console.WriteLine($"Created gamer:  with Puuid: {gamer.Puuid} ");
                     }
 
                     return Results.Content(user.ToJson(), "application/json");

@@ -1,4 +1,5 @@
 using MySqlConnector;
+using RiotProxy.Domain.Entities;
 
 namespace RiotProxy.Infrastructure.Persistence
 {
@@ -24,11 +25,7 @@ namespace RiotProxy.Infrastructure.Persistence
             await using var reader = await cmd.ExecuteReaderAsync();
             if (!await reader.ReadAsync()) return null;
 
-            return new Gamer
-            {
-                GamerId = reader.GetInt32(0),
-                GamerTag = reader.GetString(1)
-            };
+            return new Gamer();
         }
 
         public async Task<Gamer?> CreateGamerAsync(int userId, string puuid, string gamerName, string tagLine)
@@ -51,11 +48,7 @@ namespace RiotProxy.Infrastructure.Persistence
             if (result == null || result == DBNull.Value)
                 return null;
 
-            var newGamer = new Gamer
-            {
-                GamerId = Convert.ToInt32(result),
-                GamerTag = gamerName
-            };
+            var newGamer = new Gamer();;
 
             return newGamer;
         }

@@ -1,5 +1,5 @@
-using RiotProxy.Domain;
 using MySqlConnector;
+using RiotProxy.Domain.Entities;
 
 namespace RiotProxy.Infrastructure.Persistence
 {
