@@ -25,11 +25,15 @@ namespace RiotProxy.Application.Endpoints
         
         private void ConfigureGet(WebApplication app)
         {
-            app.MapGet(Route, async (string userName, [FromBody] CreateUserRequest body, [FromServices] UserRepository repo) =>
+            app.MapGet(Route, async (
+                string userName,
+                [FromBody] CreateUserRequest body,
+                [FromServices] UserRepository userRepo
+                ) =>
             {
                 try
                 {
-                    var user = await repo.GetByUserNameAsync(userName);
+                    var user = await userRepo.GetByUserNameAsync(userName);
                     if (user is null)
                     {
                         return Results.NotFound("User not found");
@@ -61,7 +65,6 @@ namespace RiotProxy.Application.Endpoints
 
                 try
                 {
-
                     var user = await userRepo.CreateUserAsync(userName);
                     if (user is null)
                     {
@@ -76,16 +79,17 @@ namespace RiotProxy.Application.Endpoints
                         var puuid = await _riotApiClient.GetPuuidAsync(account.GameName, account.TagLine);
 
                         // Create Gamer entry
-                        var gamer = await gamerRepo.CreateGamerAsync(user.UserId, puuid, account.GameName, account.TagLine);
-                        if (gamer is null)
+                        var gamerCreated = await gamerRepo.CreateGamerAsync(user.UserId, puuid, account.GameName, account.TagLine);
+                        if (!gamerCreated)
                         {
-                            return Results.NotFound("Could not create gamer");
+                            // Log error but continue
+                            Console.WriteLine($"Could not create gamer for account: {account.GameName}#{account.TagLine}");
+                            continue;
                         }
 
-                        Console.WriteLine($"Created gamer:  with Puuid: {gamer.Puuid} ");
                     }
 
-                    return Results.Content(user.ToJson(), "application/json");
+                    return Results.Ok("{\"message\":\"User and gamers created successfully\"}");
                 }
                 catch (InvalidOperationException ex)
                 {

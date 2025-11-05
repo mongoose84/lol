@@ -28,8 +28,10 @@ namespace RiotProxy.Infrastructure.Database.Repositories
             return new Gamer();
         }
 
-        public async Task<Gamer?> CreateGamerAsync(int userId, string puuid, string gamerName, string tagLine)
+        public async Task<bool> CreateGamerAsync(int userId, string puuid, string gamerName, string tagLine)
         {
+            Console.WriteLine($"Creating gamer {gamerName}#{tagLine} in database...");
+
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
@@ -41,16 +43,15 @@ namespace RiotProxy.Infrastructure.Database.Repositories
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@userId", userId);
             cmd.Parameters.AddWithValue("@puuid", puuid);
-            cmd.Parameters.AddWithValue("@gamerTag", gamerName);
+            cmd.Parameters.AddWithValue("@gamerName", gamerName);
             cmd.Parameters.AddWithValue("@tagLine", tagLine);
             var result = await cmd.ExecuteScalarAsync();
 
             if (result == null || result == DBNull.Value)
-                return null;
+                return false;
 
-            var newGamer = new Gamer();;
 
-            return newGamer;
+            return true;
         }
     }
 }
