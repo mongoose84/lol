@@ -20,7 +20,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import CreateUserPopup from './CreateUserPopup.vue' // Import the CreateUserPopup component
-import { createUser } from '@/assets/createUser.js'
+import createUser  from '@/assets/createUser.js'
 // ----- Options for the dropdown ---------------------------------------
 const options = [
   { value: 'NA', label: 'NA' },
