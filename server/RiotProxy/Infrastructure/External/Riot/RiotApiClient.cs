@@ -30,11 +30,11 @@ namespace RiotProxy.Infrastructure.External.Riot
         }
 
 
-        public async Task<double> GetWinrateAsync(string region, string puuid)
+        public async Task<double> GetWinrateAsync(string puuid)
         {
             var wins = 0;
 
-            var matchHistory = await GetMatchHistoryAsync(region, puuid);
+            var matchHistory = await GetMatchHistoryAsync(puuid);
             var totalGames = matchHistory.Count;
             
             foreach (var matchId in matchHistory)
@@ -84,12 +84,12 @@ namespace RiotProxy.Infrastructure.External.Riot
             throw new InvalidOperationException("Response does not contain a 'puuid' field.");
         }
 
-        private async Task<IList<string>> GetMatchHistoryAsync(string region, string puuid)
+        public async Task<IList<string>> GetMatchHistoryAsync(string puuid)
         {
             var matches = new List<string>();
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
             var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=10";
-            Metrics.SetLastUrlCalled("RiotServices.cs ln 12" + matchUrl);
+            Metrics.SetLastUrlCalled("RiotServices.cs ln 92" + matchUrl);
 
             using var httpClient = new HttpClient();
             var response = await httpClient.GetAsync(matchUrl);
@@ -103,7 +103,7 @@ namespace RiotProxy.Infrastructure.External.Riot
             return matches;
         }
 
-        private async Task<JsonDocument> GetMatchAsync(string matchId)
+        public async Task<JsonDocument> GetMatchAsync(string matchId)
         {
             var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/{matchId}");
             using var httpClient = new HttpClient();
