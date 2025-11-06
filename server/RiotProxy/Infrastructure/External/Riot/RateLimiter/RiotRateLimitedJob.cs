@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RiotProxy.External.Domain.Entities;
 using RiotProxy.Infrastructure.External.Database.Repositories;
+using System.Text.Json;
 
 namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 {
@@ -16,16 +17,19 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
         private readonly IRiotApiClient _riotApiClient;
         private readonly GamerRepository _gamerRepository;
         private readonly LolMatchRepository _matchRepository;
+        private readonly LolMatchParticipantRepository _participantRepository;
         private bool _jobRunning;
 
         // Token buckets are set lower for RIOT rate limits  (20 requests/second, 100 requests/2 minutes)
         private readonly TokenBucket _perSecondBucket = new(15, TimeSpan.FromSeconds(1));
         private readonly TokenBucket _perTwoMinuteBucket = new(80, TimeSpan.FromMinutes(2));
 
-        public RiotRateLimitedJob(IRiotApiClient riotApiClient, GamerRepository gamerRepository, LolMatchRepository matchRepository)
+        public RiotRateLimitedJob(IRiotApiClient riotApiClient, GamerRepository gamerRepository, LolMatchRepository matchRepository, LolMatchParticipantRepository participantRepository)
         {
             _riotApiClient = riotApiClient;
             _gamerRepository = gamerRepository;
+            _matchRepository = matchRepository;
+            _participantRepository = participantRepository;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -110,6 +114,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
         private async Task AddMatchInfoToDb(IList<LolMatch>  matches, CancellationToken ct)
         {
+            
             foreach(var match in matches)
             {
                 try
@@ -126,6 +131,23 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                     Console.WriteLine($"Error adding match info to DB: {ex.Message}");
                 }
             }
+        }
+
+        private string GetGameMode(JsonDocument doc)
+        {
+            return string.Empty;
+        }
+
+        private IList<LolMatchParticipant> MapToParticipantEntity(JsonDocument doc)
+        {
+            // Map the match info data to a LolMatchParticipant entity
+            return new List<LolMatchParticipant>
+            {
+                new LolMatchParticipant
+                {
+                    // Set properties accordingly
+                }
+            };
         }
 
         private async Task MarkMatchAsProcessedInDb(IList<LolMatch>  match, CancellationToken ct)
