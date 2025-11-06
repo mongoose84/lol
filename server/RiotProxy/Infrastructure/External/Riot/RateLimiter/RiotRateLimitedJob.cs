@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
@@ -14,13 +15,14 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
     {
         private readonly IRiotApiClient _riotApiClient;
         private readonly GamerRepository _gamerRepository;
+        private readonly LolMatchRepository _matchRepository;
         private bool _jobRunning;
 
         // Token buckets are set lower for RIOT rate limits  (20 requests/second, 100 requests/2 minutes)
         private readonly TokenBucket _perSecondBucket = new(15, TimeSpan.FromSeconds(1));
         private readonly TokenBucket _perTwoMinuteBucket = new(80, TimeSpan.FromMinutes(2));
 
-        public RiotRateLimitedJob(IRiotApiClient riotApiClient, GamerRepository gamerRepository)
+        public RiotRateLimitedJob(IRiotApiClient riotApiClient, GamerRepository gamerRepository, LolMatchRepository matchRepository)
         {
             _riotApiClient = riotApiClient;
             _gamerRepository = gamerRepository;
@@ -57,7 +59,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 await AddMatchHistoryToDb(matchHistory, ct);
 
                 // Example: process unprocessed matches
-                var unprocessedMatches = await GetUnprocessedMatchesFromDb(ct);
+                var unprocessedMatches = await _matchRepository.GetUnprocessedMatchesAsync();
                 await AddMatchInfoToDb(unprocessedMatches, ct);
 
                 await MarkMatchAsProcessedInDb(unprocessedMatches, ct);
@@ -93,27 +95,37 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
         private async Task AddMatchHistoryToDb(IList<LolMatch> matchHistory, CancellationToken ct)
         {
-            try
+            foreach (var match in matchHistory)
             {
-                foreach (var match in matchHistory)
+                try
                 {
-                    await _gamerRepository.AddMatchToHistoryAsync(match);
+                    await _matchRepository.AddMatchAsync(match);
+                }
+                catch (Exception ex) when (!(ex is OperationCanceledException))
+                {
+                    Console.WriteLine($"Error adding match history to DB: {ex.Message}");
                 }
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+        }
+
+        private async Task AddMatchInfoToDb(IList<LolMatch>  matches, CancellationToken ct)
+        {
+            foreach(var match in matches)
             {
-                Console.WriteLine($"Error adding match history to DB: {ex.Message}");
+                try
+                {
+                    // Wait for permission from both token buckets
+                    await _perSecondBucket.WaitAsync(ct);
+                    await _perTwoMinuteBucket.WaitAsync(ct);
+
+                    var matchInfo = await _riotApiClient.GetMatchInfoAsync(match.MatchId);
+                    // Update match info in DB as needed
+                }
+                catch (Exception ex) when (!(ex is OperationCanceledException))
+                {
+                    Console.WriteLine($"Error adding match info to DB: {ex.Message}");
+                }
             }
-        }
-
-        private async Task<IList<LolMatch>> GetUnprocessedMatchesFromDb(CancellationToken ct)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task AddMatchInfoToDb(IList<LolMatch>  match, CancellationToken ct)
-        {
-            throw new NotImplementedException();
         }
 
         private async Task MarkMatchAsProcessedInDb(IList<LolMatch>  match, CancellationToken ct)

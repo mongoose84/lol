@@ -13,13 +13,13 @@ Secrets.Initialize();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<GamerRepository>();
+builder.Services.AddScoped<LolMatchRepository>();
 
 builder.Services.AddCors(options =>
 {
     // Give the policy a name so you can refer to it later
     options.AddPolicy("VueClientPolicy", policy =>
     {
-        // 👉 Replace the origin(s) with the exact URL(s) where your Vue app runs.
         policy.WithOrigins(
                 "http://localhost:5173", // <-- Vue dev server
                 "http://lol.agileastronaut.com",
