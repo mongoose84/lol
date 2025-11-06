@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace RiotProxy.Domain.Entities
+namespace RiotProxy.External.Domain.Entities
 {
     public abstract class EntityBase
     {

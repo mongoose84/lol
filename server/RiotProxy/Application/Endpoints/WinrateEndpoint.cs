@@ -34,7 +34,7 @@ namespace RiotProxy.Application.Endpoints
                         return Results.BadRequest(new { error = "Puuid is null or whitespace" });
                     }
 
-                    var winrate = await _riotApiClient.GetWinrateAsync(region, puuid);
+                    var winrate = await _riotApiClient.GetWinrateAsync(puuid);
 
                     return Results.Ok(winrate);
                 }

@@ -1,8 +1,8 @@
 using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
-using RiotProxy.Infrastructure.Database;
-using RiotProxy.Infrastructure.Database.Repositories;
+using RiotProxy.Infrastructure.External.Database;
+using RiotProxy.Infrastructure.External.Database.Repositories;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,13 +13,14 @@ Secrets.Initialize();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<GamerRepository>();
+builder.Services.AddScoped<LolMatchRepository>();
+builder.Services.AddScoped<LolMatchParticipantRepository>();
 
 builder.Services.AddCors(options =>
 {
     // Give the policy a name so you can refer to it later
     options.AddPolicy("VueClientPolicy", policy =>
     {
-        // 👉 Replace the origin(s) with the exact URL(s) where your Vue app runs.
         policy.WithOrigins(
                 "http://localhost:5173", // <-- Vue dev server
                 "http://lol.agileastronaut.com",
