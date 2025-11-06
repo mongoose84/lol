@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RiotProxy.Application.DTOs;
 using RiotProxy.Infrastructure.External.Riot;
-using RiotProxy.Infrastructure.Database.Repositories;
+using RiotProxy.Infrastructure.External.Database.Repositories;
 
 namespace RiotProxy.Application.Endpoints
 {

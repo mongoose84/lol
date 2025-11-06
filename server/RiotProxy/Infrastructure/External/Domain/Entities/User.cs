@@ -1,4 +1,4 @@
-namespace RiotProxy.Domain.Entities
+namespace RiotProxy.External.Domain.Entities
 {
     public class User : EntityBase
     {
