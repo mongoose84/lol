@@ -1,8 +1,8 @@
 using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
-using RiotProxy.Infrastructure.Database;
-using RiotProxy.Infrastructure.Database.Repositories;
+using RiotProxy.Infrastructure.External.Database;
+using RiotProxy.Infrastructure.External.Database.Repositories;
 
 
 var builder = WebApplication.CreateBuilder(args);

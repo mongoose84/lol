@@ -1,7 +1,7 @@
 using MySqlConnector;
-using RiotProxy.Domain.Entities;
+using RiotProxy.External.Domain.Entities;
 
-namespace RiotProxy.Infrastructure.Database.Repositories
+namespace RiotProxy.Infrastructure.External.Database.Repositories
 {
     public class GamerRepository
     {
@@ -10,6 +10,34 @@ namespace RiotProxy.Infrastructure.Database.Repositories
         public GamerRepository(IDbConnectionFactory factory)
         {
             _factory = factory;
+        }
+
+        public async Task<IList<Gamer>> GetAllGamersAsync()
+        {
+            var gamers = new List<Gamer>();
+
+            await using var conn = _factory.CreateConnection();
+            await conn.OpenAsync();
+
+            const string sql = "SELECT PuuId, UserId, GamerName, TagLine, Wins, Losses FROM Gamer";
+            await using var cmd = new MySqlCommand(sql, conn);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var gamer = new Gamer
+                {
+                    Puuid = reader.GetString(0),
+                    UserId = reader.GetInt32(1),
+                    GamerName = reader.GetString(2),
+                    Tagline = reader.GetString(3),
+                    Wins = reader.GetInt32(4),
+                    Losses = reader.GetInt32(5)
+                };
+                gamers.Add(gamer);
+            }
+
+            return gamers;
         }
 
         public async Task<Gamer?> GetByGamerTagAsync(string gamerTag)

@@ -1,7 +1,7 @@
 using MySqlConnector;
-using RiotProxy.Domain.Entities;
+using RiotProxy.External.Domain.Entities;
 
-namespace RiotProxy.Infrastructure.Database.Repositories
+namespace RiotProxy.Infrastructure.External.Database.Repositories
 {
     public class UserRepository
     {

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Web;
+using RiotProxy.External.Domain.Entities;
 using RiotProxy.Utilities;
 
 namespace RiotProxy.Infrastructure.External.Riot
@@ -37,9 +38,9 @@ namespace RiotProxy.Infrastructure.External.Riot
             var matchHistory = await GetMatchHistoryAsync(puuid);
             var totalGames = matchHistory.Count;
             
-            foreach (var matchId in matchHistory)
+            foreach (var match in matchHistory)
             {
-                var matchDetails = await GetMatchAsync(matchId);
+                var matchDetails = await GetMatchInfoAsync(match.MatchId);
                 var info = matchDetails.RootElement.GetProperty("info");
                 var participants = info.GetProperty("participants").EnumerateArray();
                 foreach (var participant in participants)
@@ -84,11 +85,11 @@ namespace RiotProxy.Infrastructure.External.Riot
             throw new InvalidOperationException("Response does not contain a 'puuid' field.");
         }
 
-        public async Task<IList<string>> GetMatchHistoryAsync(string puuid)
+        public async Task<IList<LolMatch>> GetMatchHistoryAsync(string puuid)
         {
-            var matches = new List<string>();
+            var matches = new List<LolMatch>();
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
-            var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=10";
+            var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=100";
             Metrics.SetLastUrlCalled("RiotServices.cs ln 92" + matchUrl);
 
             using var httpClient = new HttpClient();
@@ -97,13 +98,23 @@ namespace RiotProxy.Infrastructure.External.Riot
 
             // Read and deserialize the JSON array of strings
             var json = await response.Content.ReadAsStringAsync();
-            matches = JsonSerializer.Deserialize<List<string>>(json,
+            var matchesAsJson = JsonSerializer.Deserialize<List<string>>(json,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>();
+
+            foreach (var matchInfo in matchesAsJson)
+            {
+                var lolMatch = new LolMatch
+                {
+                    MatchId = matchInfo,
+                    Puuid = puuid
+                };
+                matches.Add(lolMatch);
+            }
 
             return matches;
         }
 
-        public async Task<JsonDocument> GetMatchAsync(string matchId)
+        public async Task<JsonDocument> GetMatchInfoAsync(string matchId)
         {
             var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/{matchId}");
             using var httpClient = new HttpClient();

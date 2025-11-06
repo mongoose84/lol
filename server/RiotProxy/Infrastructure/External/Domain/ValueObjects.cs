@@ -1,4 +1,4 @@
-namespace RiotProxy.Domain
+namespace RiotProxy.External.Domain
 {
     public record SummonerId
     {
