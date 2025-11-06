@@ -124,7 +124,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                     await _perTwoMinuteBucket.WaitAsync(ct);
 
                     var matchInfo = await _riotApiClient.GetMatchInfoAsync(match.MatchId);
-                    // Update match info in DB as needed
+                    
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {

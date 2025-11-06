@@ -4,12 +4,14 @@ using System.Threading.Tasks;
 
 namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 {
-    public sealed class TokenBucket
+    public sealed class TokenBucket : IDisposable
     {
         private readonly int _capacity;
         private readonly TimeSpan _refillPeriod;
         private int _tokens;
         private readonly SemaphoreSlim _semaphore;
+        private readonly Timer _timer;
+        private bool _disposed;
 
         public TokenBucket(int capacity, TimeSpan refillPeriod)
         {
@@ -21,26 +23,47 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             _tokens = capacity;
             _semaphore = new SemaphoreSlim(capacity, capacity);
 
-            // Periodic refill
-            var timer = new Timer(_ => Refill(), null, refillPeriod, refillPeriod);
+            // Store timer in a field to prevent GC
+            _timer = new Timer(_ => Refill(), null, refillPeriod, refillPeriod);
         }
 
         private void Refill()
         {
-            // Compute how many tokens we can add without exceeding capacity
-            int toAdd = _capacity - _tokens;
-            if (toAdd <= 0) return;
+            if (_disposed) return;
 
-            // Release that many permits on the semaphore
+            // Use a spin loop with atomic compare-exchange to safely add tokens
+            int current, newValue, toAdd;
+            do
+            {
+                current = Volatile.Read(ref _tokens);
+                toAdd = _capacity - current;
+                
+                if (toAdd <= 0) return;
+                
+                newValue = current + toAdd;
+            }
+            while (Interlocked.CompareExchange(ref _tokens, newValue, current) != current);
+
+            // Only release after successfully updating _tokens
             _semaphore.Release(toAdd);
-            Interlocked.Add(ref _tokens, toAdd);
         }
 
         public async Task WaitAsync(CancellationToken ct)
         {
+            if (_disposed) throw new ObjectDisposedException(nameof(TokenBucket));
+            
             // Acquire a permit; this will block until a token is available
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
             Interlocked.Decrement(ref _tokens);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            
+            _timer?.Dispose();
+            _semaphore?.Dispose();
         }
     }
 }

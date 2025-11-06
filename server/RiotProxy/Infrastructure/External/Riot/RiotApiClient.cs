@@ -87,7 +87,6 @@ namespace RiotProxy.Infrastructure.External.Riot
 
         public async Task<IList<LolMatch>> GetMatchHistoryAsync(string puuid)
         {
-            var matches = new List<LolMatch>();
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
             var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=100";
             Metrics.SetLastUrlCalled("RiotServices.cs ln 92" + matchUrl);
@@ -101,15 +100,14 @@ namespace RiotProxy.Infrastructure.External.Riot
             var matchesAsJson = JsonSerializer.Deserialize<List<string>>(json,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>();
 
-            foreach (var matchInfo in matchesAsJson)
-            {
-                var lolMatch = new LolMatch
+            // Use Select to map matchId strings to LolMatch objects
+            var matches = matchesAsJson
+                .Select(matchId => new LolMatch
                 {
-                    MatchId = matchInfo,
+                    MatchId = matchId,
                     Puuid = puuid
-                };
-                matches.Add(lolMatch);
-            }
+                })
+                .ToList();
 
             return matches;
         }

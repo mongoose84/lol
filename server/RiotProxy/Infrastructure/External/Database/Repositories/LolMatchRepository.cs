@@ -31,7 +31,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "UPDATE Match SET InfoFetched = @infoFetched WHERE MatchId = @matchId";
+            const string sql = "UPDATE Match SET InfoFetched = @infoFetched, GameMode = @gameMode WHERE MatchId = @matchId";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@infoFetched", infoFetched);
             cmd.Parameters.AddWithValue("@matchId", matchId);
@@ -47,7 +47,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "SELECT MatchId, Puuid, InfoFetched FROM Match WHERE InfoFetched = FALSE";
+            const string sql = "SELECT MatchId, Puuid, InfoFetched, GameMode FROM Match WHERE InfoFetched = FALSE";
             await using var cmd = new MySqlCommand(sql, conn);
 
             await using var reader = await cmd.ExecuteReaderAsync();
