@@ -17,7 +17,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "INSERT INTO Match (MatchId, Puuid, InfoFetched) VALUES (@matchId, @puuid, @infoFetched)";
+            const string sql = "INSERT INTO LolMatch (MatchId, Puuid, InfoFetched) VALUES (@matchId, @puuid, @infoFetched)";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@matchId", match.MatchId);
             cmd.Parameters.AddWithValue("@puuid", match.Puuid);
@@ -26,16 +26,16 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task UpdateMatchInfoFetchedAsync(string matchId, bool infoFetched, string gameMode)
+        public async Task UpdateMatchAsync(LolMatch match)
         {
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "UPDATE Match SET InfoFetched = @infoFetched, GameMode = @gameMode WHERE MatchId = @matchId";
+            const string sql = "UPDATE LolMatch SET InfoFetched = @infoFetched, GameMode = @gameMode WHERE MatchId = @matchId";
             await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@infoFetched", infoFetched);
-            cmd.Parameters.AddWithValue("@matchId", matchId);
-            cmd.Parameters.AddWithValue("@gameMode", gameMode);
+            cmd.Parameters.AddWithValue("@infoFetched", match.InfoFetched);
+            cmd.Parameters.AddWithValue("@matchId", match.MatchId);
+            cmd.Parameters.AddWithValue("@gameMode", match.GameMode);
 
             await cmd.ExecuteNonQueryAsync();
         }
@@ -47,7 +47,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "SELECT MatchId, Puuid, InfoFetched, GameMode FROM Match WHERE InfoFetched = FALSE";
+            const string sql = "SELECT MatchId, Puuid, InfoFetched, GameMode FROM LolMatch WHERE InfoFetched = FALSE";
             await using var cmd = new MySqlCommand(sql, conn);
 
             await using var reader = await cmd.ExecuteReaderAsync();

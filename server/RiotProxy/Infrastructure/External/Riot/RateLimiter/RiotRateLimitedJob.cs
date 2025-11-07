@@ -14,22 +14,16 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 {
     public class RiotRateLimitedJob : BackgroundService
     {
-        private readonly IRiotApiClient _riotApiClient;
-        private readonly GamerRepository _gamerRepository;
-        private readonly LolMatchRepository _matchRepository;
-        private readonly LolMatchParticipantRepository _participantRepository;
+        private readonly IServiceProvider _serviceProvider;
         private bool _jobRunning;
 
         // Token buckets are set lower for RIOT rate limits  (20 requests/second, 100 requests/2 minutes)
         private readonly TokenBucket _perSecondBucket = new(15, TimeSpan.FromSeconds(1));
         private readonly TokenBucket _perTwoMinuteBucket = new(80, TimeSpan.FromMinutes(2));
 
-        public RiotRateLimitedJob(IRiotApiClient riotApiClient, GamerRepository gamerRepository, LolMatchRepository matchRepository, LolMatchParticipantRepository participantRepository)
+        public RiotRateLimitedJob(IServiceProvider serviceProvider)
         {
-            _riotApiClient = riotApiClient;
-            _gamerRepository = gamerRepository;
-            _matchRepository = matchRepository;
-            _participantRepository = participantRepository;
+            _serviceProvider = serviceProvider;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -56,17 +50,33 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             _jobRunning = true;
             try
             {
-                var gamers = await _gamerRepository.GetAllGamersAsync();
+                using var scope = _serviceProvider.CreateScope();
+                var riotApiClient = scope.ServiceProvider.GetRequiredService<IRiotApiClient>();
+                var gamerRepository = scope.ServiceProvider.GetRequiredService<GamerRepository>();
+                var matchRepository = scope.ServiceProvider.GetRequiredService<LolMatchRepository>();
+                var participantRepository = scope.ServiceProvider.GetRequiredService<LolMatchParticipantRepository>();
+                
+
+                Console.WriteLine("RiotRateLimitedJob started.");
+                var gamers = await gamerRepository.GetAllGamersAsync();
+
+                Console.WriteLine($"Found {gamers.Count} gamers.");
 
                 // Example: fetch match history for all gamers
-                var matchHistory = await GetMatchHistoryFromRiotApi(gamers, ct);
-                await AddMatchHistoryToDb(matchHistory, ct);
+                var matchHistory = await GetMatchHistoryFromRiotApi(gamers, riotApiClient, ct);
+                Console.WriteLine($"Fetched match history for {matchHistory.Count} matches.");
+
+                await AddMatchHistoryToDb(matchHistory, matchRepository, ct);
+                Console.WriteLine("Match history added to DB.");
 
                 // Example: process unprocessed matches
-                var unprocessedMatches = await _matchRepository.GetUnprocessedMatchesAsync();
-                await AddMatchInfoToDb(unprocessedMatches, ct);
+                var unprocessedMatches = await matchRepository.GetUnprocessedMatchesAsync();
+                Console.WriteLine($"Found {unprocessedMatches.Count} unprocessed matches.");
 
-                await MarkMatchAsProcessedInDb(unprocessedMatches, ct);
+                await AddMatchInfoToDb(unprocessedMatches, riotApiClient, participantRepository, matchRepository, ct);
+
+                Console.WriteLine("Match info added to DB.");
+                Console.WriteLine("RiotRateLimitedJob completed.");
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
             {
@@ -79,7 +89,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             }
         }
 
-        private async Task<IList<LolMatch>> GetMatchHistoryFromRiotApi(IList<Gamer> gamers, CancellationToken ct)
+        private async Task<IList<LolMatch>> GetMatchHistoryFromRiotApi(IList<Gamer> gamers, IRiotApiClient riotApiClient, CancellationToken ct)
         {
             var allMatchHistory = new List<LolMatch>();
 
@@ -89,7 +99,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 await _perSecondBucket.WaitAsync(ct);
                 await _perTwoMinuteBucket.WaitAsync(ct);
 
-                var matchHistory = await _riotApiClient.GetMatchHistoryAsync(gamer.Puuid);
+                var matchHistory = await riotApiClient.GetMatchHistoryAsync(gamer.Puuid);
                 
                 allMatchHistory.AddRange(matchHistory);
             }
@@ -97,13 +107,13 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             return allMatchHistory;
         }
 
-        private async Task AddMatchHistoryToDb(IList<LolMatch> matchHistory, CancellationToken ct)
+        private async Task AddMatchHistoryToDb(IList<LolMatch> matchHistory, LolMatchRepository matchRepository, CancellationToken ct)
         {
             foreach (var match in matchHistory)
             {
                 try
                 {
-                    await _matchRepository.AddMatchAsync(match);
+                    await matchRepository.AddMatchAsync(match);
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {
@@ -112,10 +122,14 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             }
         }
 
-        private async Task AddMatchInfoToDb(IList<LolMatch>  matches, CancellationToken ct)
+        private async Task AddMatchInfoToDb(IList<LolMatch> matches,
+                                IRiotApiClient riotApiClient,
+                                LolMatchParticipantRepository participantRepository,
+                                LolMatchRepository matchRepository,
+                                CancellationToken ct)
         {
-            
-            foreach(var match in matches)
+
+            foreach (var match in matches)
             {
                 try
                 {
@@ -123,8 +137,13 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                     await _perSecondBucket.WaitAsync(ct);
                     await _perTwoMinuteBucket.WaitAsync(ct);
 
-                    var matchInfo = await _riotApiClient.GetMatchInfoAsync(match.MatchId);
-                    
+                    var matchInfo = await riotApiClient.GetMatchInfoAsync(match.MatchId);
+                    var participant = MapToParticipantEntity(matchInfo, match.Puuid);
+                    await participantRepository.AddParticipantAsync(participant);
+
+                    match.GameMode = GetGameMode(matchInfo);
+                    match.InfoFetched = true;
+                    await matchRepository.UpdateMatchAsync(match);
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {
@@ -133,9 +152,52 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             }
         }
 
-        private string GetGameMode(JsonDocument doc)
+        private string GetGameMode(JsonDocument matchInfo)
         {
+            // Extract the game mode from the match info
+            if (matchInfo.RootElement.TryGetProperty("info", out JsonElement infoElement) &&
+                infoElement.TryGetProperty("gameMode", out JsonElement gameModeElement))
+            {
+                var gameMode = gameModeElement.GetString();
+                if (gameMode != null)
+                    return gameMode;
+            }
             return string.Empty;
+        }
+
+        private LolMatchParticipant MapToParticipantEntity(JsonDocument matchInfo, string puuid)
+        {
+            if (matchInfo.RootElement.TryGetProperty("info", out JsonElement infoElement) &&
+                infoElement.TryGetProperty("participants", out JsonElement participantsElement))
+            {
+                foreach (var participant in participantsElement.EnumerateArray())
+                {
+                    if (participant.GetProperty("puuid").GetString() == puuid)
+                    {
+                        var matchId = matchInfo.RootElement.GetProperty("metadata").GetProperty("matchId").GetString();
+                        var puuidValue = participant.GetProperty("puuid").GetString();
+                        var championName = participant.GetProperty("championName").GetString();
+                        if (matchId == null || puuidValue == null || championName == null)
+                        {
+                            throw new InvalidOperationException("Required participant fields are null.");
+                        }
+                        
+                        return new LolMatchParticipant
+                        {
+                            MatchId = matchId,
+                            Puuid = puuidValue,
+                            ChampionName = championName,
+                            Win = participant.GetProperty("win").GetBoolean(),
+                            Kills = participant.GetProperty("kills").GetInt32(),
+                            Deaths = participant.GetProperty("deaths").GetInt32(),
+                            Assists = participant.GetProperty("assists").GetInt32(),
+                            // Map other properties as needed
+                        };
+                    }
+                }
+            }
+
+            throw new InvalidOperationException("Participant not found.");
         }
 
         private IList<LolMatchParticipant> MapToParticipantEntity(JsonDocument doc)
@@ -148,11 +210,6 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                     // Set properties accordingly
                 }
             };
-        }
-
-        private async Task MarkMatchAsProcessedInDb(IList<LolMatch>  match, CancellationToken ct)
-        {
-            throw new NotImplementedException();
         }
     }
 }

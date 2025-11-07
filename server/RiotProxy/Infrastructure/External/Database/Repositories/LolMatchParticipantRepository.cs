@@ -17,13 +17,13 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "INSERT INTO MatchParticipant (MatchId, Puuid, Win, Role, ChampionName, Kills, Deaths, Assists) " +
+            const string sql = "INSERT INTO LolMatchParticipant (MatchId, Puuid, Win, Role, ChampionName, Kills, Deaths, Assists) " +
                                "VALUES (@matchId, @puuid, @win, @role, @championName, @kills, @deaths, @assists)";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@matchId", participant.MatchId);
             cmd.Parameters.AddWithValue("@puuid", participant.Puuid);
             cmd.Parameters.AddWithValue("@win", participant.Win);
-            cmd.Parameters.AddWithValue("@role", participant.Role);
+            cmd.Parameters.AddWithValue("@role", participant.Role ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@championName", participant.ChampionName);
             cmd.Parameters.AddWithValue("@kills", participant.Kills);
             cmd.Parameters.AddWithValue("@deaths", participant.Deaths);

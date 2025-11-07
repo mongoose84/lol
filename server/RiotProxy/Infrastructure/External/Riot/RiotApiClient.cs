@@ -7,7 +7,6 @@ namespace RiotProxy.Infrastructure.External.Riot
 {
     public class RiotApiClient : IRiotApiClient
     {
-
         public async Task<string> GetSummonerAsync(string gameName, string tagLine)
         {
            // Encode each component so special characters are safe in the URL path.
@@ -123,7 +122,5 @@ namespace RiotProxy.Infrastructure.External.Riot
             var matchDoc = JsonDocument.Parse(json);
             return matchDoc;
         }
-        
-
     }
 }
