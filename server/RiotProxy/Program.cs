@@ -3,6 +3,8 @@ using RiotProxy.Infrastructure;
 using RiotProxy.Application;
 using RiotProxy.Infrastructure.External.Database;
 using RiotProxy.Infrastructure.External.Database.Repositories;
+using RiotProxy.Infrastructure.External.Riot;
+using RiotProxy.Infrastructure.External.Riot.RateLimiter;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +17,12 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<GamerRepository>();
 builder.Services.AddScoped<LolMatchRepository>();
 builder.Services.AddScoped<LolMatchParticipantRepository>();
+
+// Register RiotApiClient
+builder.Services.AddScoped<IRiotApiClient, RiotApiClient>();
+
+// Register the background service
+builder.Services.AddHostedService<RiotRateLimitedJob>();
 
 builder.Services.AddCors(options =>
 {

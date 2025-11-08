@@ -8,5 +8,6 @@ namespace RiotProxy.External.Domain.Entities
         public string Tagline { get; set; } = string.Empty;
         public int Wins { get; set; }
         public int Losses { get; set; }
+        public DateTime LastChecked { get; set; }
     }
 }

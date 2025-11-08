@@ -17,53 +17,103 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "INSERT INTO Match (MatchId, Puuid, InfoFetched) VALUES (@matchId, @puuid, @infoFetched)";
+            const string sql = "INSERT INTO LolMatch (MatchId, Puuid, InfoFetched, GameMode, GameEndTimestamp) VALUES (@matchId, @puuid, @infoFetched, @gameMode, @endTs)";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@matchId", match.MatchId);
             cmd.Parameters.AddWithValue("@puuid", match.Puuid);
             cmd.Parameters.AddWithValue("@infoFetched", match.InfoFetched);
-
+            cmd.Parameters.AddWithValue("@gameMode", match.GameMode ?? string.Empty);
+            
+            // Use a sentinel date instead of NULL if column is NOT NULL
+            cmd.Parameters.AddWithValue("@endTs", 
+                match.GameEndTimestamp == DateTime.MinValue 
+                    ? new DateTime(1970, 1, 1) // Or DateTime.UtcNow as placeholder
+                    : match.GameEndTimestamp);
+            
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task UpdateMatchInfoFetchedAsync(string matchId, bool infoFetched, string gameMode)
+        public async Task UpdateMatchAsync(LolMatch match)
         {
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "UPDATE Match SET InfoFetched = @infoFetched, GameMode = @gameMode WHERE MatchId = @matchId";
+            const string sql = "UPDATE LolMatch SET InfoFetched = @infoFetched, GameMode = @gameMode, GameEndTimestamp = @gameEndTimestamp WHERE MatchId = @matchId";
             await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@infoFetched", infoFetched);
-            cmd.Parameters.AddWithValue("@matchId", matchId);
-            cmd.Parameters.AddWithValue("@gameMode", gameMode);
-
+            cmd.Parameters.AddWithValue("@infoFetched", match.InfoFetched);
+            cmd.Parameters.AddWithValue("@matchId", match.MatchId);
+            cmd.Parameters.AddWithValue("@gameMode", match.GameMode);
+            cmd.Parameters.AddWithValue("@gameEndTimestamp", match.GameEndTimestamp == DateTime.MinValue ? DBNull.Value : match.GameEndTimestamp);
             await cmd.ExecuteNonQueryAsync();
         }
 
         internal async Task<IList<LolMatch>> GetUnprocessedMatchesAsync()
         {
             var matches = new List<LolMatch>();
+            await using var conn = _factory.CreateConnection();
+            await conn.OpenAsync();
+
+            const string sql = "SELECT MatchId, Puuid, InfoFetched, GameMode, GameEndTimestamp FROM LolMatch WHERE InfoFetched = FALSE";
+            await using var cmd = new MySqlCommand(sql, conn);
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                matches.Add(new LolMatch
+                {
+                    MatchId = reader.GetString(0),
+                    Puuid = reader.GetString(1),
+                    InfoFetched = reader.GetBoolean(2),
+                    GameMode = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                    GameEndTimestamp = reader.IsDBNull(4) ? DateTime.MinValue : reader.GetDateTime(4)
+                });
+            }
+            return matches;
+        }
+
+        public async Task<IList<LolMatch>> GetExistingMatchesAsync(IList<string> matchIds)
+        {
+            if (matchIds.Count == 0) return new List<LolMatch>();
 
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
 
-            const string sql = "SELECT MatchId, Puuid, InfoFetched, GameMode FROM Match WHERE InfoFetched = FALSE";
+            var parameterNames = matchIds.Select((id, index) => $"@id{index}").ToList();
+            var sql = $"SELECT MatchId, Puuid, InfoFetched, GameMode FROM `LolMatch` WHERE MatchId IN ({string.Join(",", parameterNames)})";
+            
             await using var cmd = new MySqlCommand(sql, conn);
-
+            for (int i = 0; i < matchIds.Count; i++)
+            {
+                cmd.Parameters.AddWithValue(parameterNames[i], matchIds[i]);
+            }
             await using var reader = await cmd.ExecuteReaderAsync();
+            
+            var matches = new List<LolMatch>();
             while (await reader.ReadAsync())
             {
-                var match = new LolMatch
+                matches.Add(new LolMatch
                 {
-                    MatchId = reader.GetString("MatchId"),
-                    Puuid = reader.GetString("Puuid"),
-                    InfoFetched = reader.GetBoolean("InfoFetched"),
-                    GameMode = reader.GetString("GameMode")
-                };
-                matches.Add(match);
+                    MatchId = reader.GetString(0),
+                    Puuid = reader.GetString(1),
+                    InfoFetched = reader.GetBoolean(2),
+                    GameMode = reader.IsDBNull(3) ? string.Empty : reader.GetString(3)
+                });
             }
-
+            
             return matches;
+        }
+
+        public async Task AddMatchIfNotExistsAsync(LolMatch match)
+        {
+            await using var conn = _factory.CreateConnection();
+            await conn.OpenAsync();
+            const string sql = "INSERT IGNORE INTO LolMatch (MatchId, Puuid, InfoFetched, GameMode, GameEndTimestamp) VALUES (@matchId, @puuid, @infoFetched, @gameMode, @gameEndTimestamp)";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@matchId", match.MatchId);
+            cmd.Parameters.AddWithValue("@puuid", match.Puuid);
+            cmd.Parameters.AddWithValue("@infoFetched", match.InfoFetched);
+            cmd.Parameters.AddWithValue("@gameMode", match.GameMode ?? string.Empty);
+            cmd.Parameters.AddWithValue("@gameEndTimestamp", match.GameEndTimestamp == DateTime.MinValue ? DBNull.Value : match.GameEndTimestamp);
+            await cmd.ExecuteNonQueryAsync();
         }
     }
 }
