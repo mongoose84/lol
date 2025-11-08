@@ -28,8 +28,30 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             cmd.Parameters.AddWithValue("@kills", participant.Kills);
             cmd.Parameters.AddWithValue("@deaths", participant.Deaths);
             cmd.Parameters.AddWithValue("@assists", participant.Assists);
-        
+
             await cmd.ExecuteNonQueryAsync();
-        }   
+        } 
+
+        public async Task<bool> ParticipantExistsAsync(string matchId, string puuid)
+        {
+            await using var conn = _factory.CreateConnection();
+            await conn.OpenAsync();
+
+            const string sql = "SELECT COUNT(*) FROM LolMatchParticipant WHERE MatchId = @matchId AND Puuid = @puuid";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@matchId", matchId);
+            cmd.Parameters.AddWithValue("@puuid", puuid);
+
+            var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            return count > 0;
+        }
+
+        public async Task AddParticipantIfNotExistsAsync(LolMatchParticipant participant)
+        {
+            if (await ParticipantExistsAsync(participant.MatchId, participant.Puuid))
+                return;
+
+            await AddParticipantAsync(participant);
+        }  
     }
 }

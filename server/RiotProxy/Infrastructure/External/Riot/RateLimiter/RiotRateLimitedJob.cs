@@ -31,9 +31,9 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             // Run until the host shuts down
             while (!stoppingToken.IsCancellationRequested)
             {
-                var nextRun = DateTime.UtcNow.AddMinutes(2);
+                var nextRun = DateTime.UtcNow.AddMinutes(10);
 
-                // Wait exactly until the next 2‑minute tick (or break early if cancelled)
+                // Wait exactly until the next 1‑minute tick (or break early if cancelled)
                 var delay = nextRun - DateTime.UtcNow;
                 if (delay > TimeSpan.Zero)
                     await Task.Delay(delay, stoppingToken);
@@ -73,7 +73,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 var unprocessedMatches = await matchRepository.GetUnprocessedMatchesAsync();
                 Console.WriteLine($"Found {unprocessedMatches.Count} unprocessed matches.");
 
-                await AddMatchInfoToDb(unprocessedMatches, riotApiClient, participantRepository, matchRepository, ct);
+                await AddMatchInfoToDb(unprocessedMatches, gamers, riotApiClient, participantRepository, matchRepository, gamerRepository, ct);
 
                 Console.WriteLine("Match info added to DB.");
                 Console.WriteLine("RiotRateLimitedJob completed.");
@@ -113,7 +113,8 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             {
                 try
                 {
-                    await matchRepository.AddMatchAsync(match);
+                    // Check before inserting - cleaner than catching exceptions
+                    await matchRepository.AddMatchIfNotExistsAsync(match);
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {
@@ -123,27 +124,37 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
         }
 
         private async Task AddMatchInfoToDb(IList<LolMatch> matches,
-                                IRiotApiClient riotApiClient,
-                                LolMatchParticipantRepository participantRepository,
-                                LolMatchRepository matchRepository,
-                                CancellationToken ct)
+                        IList<Gamer> gamers,
+                        IRiotApiClient riotApiClient,
+                        LolMatchParticipantRepository participantRepository,
+                        LolMatchRepository matchRepository,
+                        GamerRepository gamerRepository,
+                        CancellationToken ct)
         {
-
             foreach (var match in matches)
             {
+                var gamer = gamers.FirstOrDefault(g => g.Puuid == match.Puuid);
                 try
                 {
                     // Wait for permission from both token buckets
                     await _perSecondBucket.WaitAsync(ct);
                     await _perTwoMinuteBucket.WaitAsync(ct);
 
-                    var matchInfo = await riotApiClient.GetMatchInfoAsync(match.MatchId);
-                    var participant = MapToParticipantEntity(matchInfo, match.Puuid);
-                    await participantRepository.AddParticipantAsync(participant);
+                    var matchInfoJson = await riotApiClient.GetMatchInfoAsync(match.MatchId);
+                    var participant = MapToParticipantEntity(matchInfoJson, match);
+                    
+                    // Check before inserting
+                    await participantRepository.AddParticipantIfNotExistsAsync(participant);
 
-                    match.GameMode = GetGameMode(matchInfo);
+                    match.GameMode = GetGameMode(matchInfoJson);
                     match.InfoFetched = true;
                     await matchRepository.UpdateMatchAsync(match);
+
+                    if (gamer != null && (gamer.LastChecked == DateTime.MinValue || gamer.LastChecked < match.GameEndTimestamp))
+                    {
+                        gamer.LastChecked = match.GameEndTimestamp;
+                        await gamerRepository.UpdateGamerAsync(gamer);
+                    }
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {
@@ -154,34 +165,56 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
         private string GetGameMode(JsonDocument matchInfo)
         {
-            // Extract the game mode from the match info
-            if (matchInfo.RootElement.TryGetProperty("info", out JsonElement infoElement) &&
-                infoElement.TryGetProperty("gameMode", out JsonElement gameModeElement))
+            if (matchInfo.RootElement.TryGetProperty("info", out var infoElement) &&
+                infoElement.TryGetProperty("gameMode", out var gameModeElement))
             {
-                var gameMode = gameModeElement.GetString();
-                if (gameMode != null)
-                    return gameMode;
+                if (gameModeElement.ValueKind == JsonValueKind.String)
+                    return gameModeElement.GetString() ?? string.Empty;
+
+                // fallback if API changes type unexpectedly
+                return gameModeElement.ToString();
             }
             return string.Empty;
         }
 
-        private LolMatchParticipant MapToParticipantEntity(JsonDocument matchInfo, string puuid)
+        private static long? GetEpochMilliseconds(JsonElement obj, string propertyName)
         {
-            if (matchInfo.RootElement.TryGetProperty("info", out JsonElement infoElement) &&
-                infoElement.TryGetProperty("participants", out JsonElement participantsElement))
+            if (!obj.TryGetProperty(propertyName, out var el))
+                return null;
+
+            return el.ValueKind switch
             {
+                JsonValueKind.Number => el.GetInt64(),
+                JsonValueKind.String => long.TryParse(el.GetString(), out var v) ? v : null,
+                _ => null
+            };
+        }
+
+        private LolMatchParticipant MapToParticipantEntity(JsonDocument matchInfo, LolMatch match)
+        {
+            if (matchInfo.RootElement.TryGetProperty("info", out var infoElement) &&
+                infoElement.TryGetProperty("participants", out var participantsElement))
+            {
+                // gameEndTimestamp is epoch ms; fall back to gameCreation if needed
+                var endMs = GetEpochMilliseconds(infoElement, "gameEndTimestamp")
+                            ?? GetEpochMilliseconds(infoElement, "gameCreation")
+                            ?? 0L;
+
+                if (endMs > 0)
+                    match.GameEndTimestamp = DateTimeOffset.FromUnixTimeMilliseconds(endMs).UtcDateTime;
+                else
+                    match.GameEndTimestamp = DateTime.MinValue;
+
                 foreach (var participant in participantsElement.EnumerateArray())
                 {
-                    if (participant.GetProperty("puuid").GetString() == puuid)
+                    if (participant.GetProperty("puuid").GetString() == match.Puuid)
                     {
                         var matchId = matchInfo.RootElement.GetProperty("metadata").GetProperty("matchId").GetString();
                         var puuidValue = participant.GetProperty("puuid").GetString();
                         var championName = participant.GetProperty("championName").GetString();
                         if (matchId == null || puuidValue == null || championName == null)
-                        {
                             throw new InvalidOperationException("Required participant fields are null.");
-                        }
-                        
+
                         return new LolMatchParticipant
                         {
                             MatchId = matchId,
@@ -191,25 +224,12 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                             Kills = participant.GetProperty("kills").GetInt32(),
                             Deaths = participant.GetProperty("deaths").GetInt32(),
                             Assists = participant.GetProperty("assists").GetInt32(),
-                            // Map other properties as needed
                         };
                     }
                 }
             }
 
             throw new InvalidOperationException("Participant not found.");
-        }
-
-        private IList<LolMatchParticipant> MapToParticipantEntity(JsonDocument doc)
-        {
-            // Map the match info data to a LolMatchParticipant entity
-            return new List<LolMatchParticipant>
-            {
-                new LolMatchParticipant
-                {
-                    // Set properties accordingly
-                }
-            };
         }
     }
 }
