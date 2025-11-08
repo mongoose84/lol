@@ -27,11 +27,35 @@
                 class="search-input"
               />
               <h1>#</h1>
-              <select v-model="row.tagLine" class="tagLine-select select-dark">
-                <option v-for="opt in options" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
+              
+              <!-- Custom combo box -->
+              <div class="combo-box">
+                <input 
+                  v-model="row.tagLine" 
+                  type="text"
+                  placeholder="Tag"
+                  class="tagLine-input"
+                  @focus="row.showDropdown = true"
+                  @blur="handleBlur(row)"
+                />
+                <button 
+                  type="button"
+                  class="dropdown-arrow"
+                  @click="row.showDropdown = !row.showDropdown"
+                >
+                  ▼
+                </button>
+                <div v-if="row.showDropdown" class="dropdown-menu">
+                  <div 
+                    v-for="opt in options" 
+                    :key="opt.value"
+                    class="dropdown-item"
+                    @click="selectOption(row, opt.value)"
+                  >
+                    {{ opt.label }}
+                  </div>
+                </div>
+              </div>
             </form>
           </section>
         </div>
@@ -52,18 +76,19 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import createUser from '../assets/createUser.js' // relative import from views -> assets
+import createUser from '../assets/createUser.js'
 
 interface SummonerField {
   id: number;
   gameName: string;
-  tagLine: string; // use 'tagLine' to match API naming
+  tagLine: string;
+  showDropdown?: boolean;
 }
 
 export default defineComponent({
   props: {
     onClose: { type: Function, required: true },
-    onCreate: { type: Function, required: false } // optional callback to parent
+    onCreate: { type: Function, required: false }
   },
   setup(props) {
     const options = [
@@ -76,7 +101,7 @@ export default defineComponent({
 
     const username = ref<string>('')
     const summoners = ref<SummonerField[]>([
-      { id: 1, gameName: '', tagLine: 'EUNE' }
+      { id: 1, gameName: '', tagLine: 'EUNE', showDropdown: false }
     ])
     const nextId = ref(2)
     const busy = ref(false)
@@ -84,8 +109,19 @@ export default defineComponent({
     const success = ref<string | null>(null)
 
     const handleAddRow = () => {
-      summoners.value.push({ id: nextId.value, gameName: '', tagLine: 'EUNE' })
+      summoners.value.push({ id: nextId.value, gameName: '', tagLine: 'EUNE', showDropdown: false })
       nextId.value++
+    }
+
+    const handleBlur = (row: SummonerField) => {
+      setTimeout(() => {
+        row.showDropdown = false
+      }, 200)
+    }
+
+    const selectOption = (row: SummonerField, value: string) => {
+      row.tagLine = value
+      row.showDropdown = false
     }
 
     const handleCreate = async () => {
@@ -106,10 +142,8 @@ export default defineComponent({
 
       try {
         busy.value = true
-        // POST /api/v1.0/user/{username} with JSON body { accounts: [...] }
         const res = await createUser(name, accounts)
         success.value = 'User created successfully'
-        // Optional callback to parent with payload/result
         // @ts-ignore
         props.onCreate?.({ username: name, accounts, response: res })
         setTimeout(() => props.onClose(), 700)
@@ -120,7 +154,7 @@ export default defineComponent({
       }
     }
 
-    return { options, username, summoners, handleAddRow, handleCreate, busy, error, success }
+    return { options, username, summoners, handleAddRow, handleBlur, selectOption, handleCreate, busy, error, success }
   }
 })
 </script>
@@ -148,12 +182,65 @@ export default defineComponent({
 .search-form { display: flex; gap: 0.25rem; align-items: center; }
 .search-form h1 { color: #fff; margin: 0 0.25rem; }
 
-.search-input, .tagLine-select {
+.search-input {
   background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;
   padding: 0.5rem; font-size: 1rem;
+  flex: 1; min-width: 0;
 }
-.search-input { flex: 1; min-width: 0; }
-.tagLine-select { width: 100px; }
+
+.combo-box {
+  position: relative;
+  display: flex;
+  width: 120px;
+}
+
+.tagLine-input {
+  background: #333; color: #fff; border: 1px solid #555; 
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  padding: 0.5rem; font-size: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.dropdown-arrow {
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 0 4px 4px 0;
+  padding: 0 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.dropdown-arrow:hover {
+  background: #444;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #333;
+  border: 1px solid #555;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 1px;
+}
+
+.dropdown-item {
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #fff;
+}
+
+.dropdown-item:hover {
+  background: #444;
+}
 
 .add-button {
   width: 40px; height: 40px; border-radius: 50%; background: #007bff; color: #fff;

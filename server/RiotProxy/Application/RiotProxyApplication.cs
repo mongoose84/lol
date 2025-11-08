@@ -21,12 +21,6 @@ namespace RiotProxy.Application
             var metricsEndpoint = new MetricsEndpoint(_basePath);
             _endpoints.Add(metricsEndpoint);
 
-            var summonerEndpoint = new SummonerEndpoint(_basePath, _riotApi);
-            _endpoints.Add(summonerEndpoint);
-
-            var winrateEndpoint = new WinrateEndpoint(_basePath, _riotApi);
-            _endpoints.Add(winrateEndpoint);
-
             var personEndpoint = new UserEndpoint(_basePath, _riotApi);
             _endpoints.Add(personEndpoint);
         }

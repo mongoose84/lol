@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using RiotProxy.Application.DTOs;
 using RiotProxy.Infrastructure.External.Riot;
 using RiotProxy.Infrastructure.External.Database.Repositories;
+using RiotProxy.Infrastructure.External.Riot.RateLimiter;
 
 namespace RiotProxy.Application.Endpoints
 {
@@ -104,6 +105,10 @@ namespace RiotProxy.Application.Endpoints
                         }
 
                     }
+                    var riotJob = app.Services.GetRequiredService<RiotRateLimitedJob>();
+                    // Trigger the background job to update match history
+                    Console.WriteLine("Triggering RiotRateLimitedJob after user creation...");
+                    _ = Task.Run(() => riotJob.RunJobAsync(CancellationToken.None));
 
                     return Results.Ok("{\"message\":\"User and gamers created successfully\"}");
                 }

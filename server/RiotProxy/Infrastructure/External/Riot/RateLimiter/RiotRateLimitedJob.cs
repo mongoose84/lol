@@ -23,7 +23,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             // Run until the host shuts down
             while (!stoppingToken.IsCancellationRequested)
             {
-                var nextRun = DateTime.UtcNow.AddMinutes(10);
+                var nextRun = DateTime.UtcNow.AddDays(1);
 
                 // Wait exactly until the next 10‑minute tick (or break early if cancelled)
                 var delay = nextRun - DateTime.UtcNow;
@@ -37,7 +37,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             }
         }
 
-        private async Task RunJobAsync(CancellationToken ct)
+        public async Task RunJobAsync(CancellationToken ct = default)
         {
             _jobRunning = true;
             try

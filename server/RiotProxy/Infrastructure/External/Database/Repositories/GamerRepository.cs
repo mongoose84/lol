@@ -53,6 +53,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             cmd.Parameters.AddWithValue("@puuid", puuid);
             cmd.Parameters.AddWithValue("@gamerName", gamerName);
             cmd.Parameters.AddWithValue("@tagLine", tagLine);
+            cmd.Parameters.AddWithValue("@lastChecked", DateTime.MinValue);
             var result = await cmd.ExecuteScalarAsync();
 
             if (result == null || result == DBNull.Value)
