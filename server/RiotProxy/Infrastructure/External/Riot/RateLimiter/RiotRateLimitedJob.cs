@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using RiotProxy.External.Domain.Entities;
 using RiotProxy.Infrastructure.External.Database.Repositories;
 using System.Text.Json;
@@ -33,7 +25,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             {
                 var nextRun = DateTime.UtcNow.AddMinutes(10);
 
-                // Wait exactly until the next 1‑minute tick (or break early if cancelled)
+                // Wait exactly until the next 10‑minute tick (or break early if cancelled)
                 var delay = nextRun - DateTime.UtcNow;
                 if (delay > TimeSpan.Zero)
                     await Task.Delay(delay, stoppingToken);
@@ -132,8 +124,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                         CancellationToken ct)
         {
             foreach (var match in matches)
-            {
-                var gamer = gamers.FirstOrDefault(g => g.Puuid == match.Puuid);
+            {   
                 try
                 {
                     // Wait for permission from both token buckets
@@ -150,6 +141,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                     match.InfoFetched = true;
                     await matchRepository.UpdateMatchAsync(match);
 
+                    var gamer = gamers.FirstOrDefault(g => g.Puuid == match.Puuid);
                     if (gamer != null && (gamer.LastChecked == DateTime.MinValue || gamer.LastChecked < match.GameEndTimestamp))
                     {
                         gamer.LastChecked = match.GameEndTimestamp;
@@ -207,23 +199,51 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
                 foreach (var participant in participantsElement.EnumerateArray())
                 {
-                    if (participant.GetProperty("puuid").GetString() == match.Puuid)
+                    if (participant.TryGetProperty("puuid", out var puuidElement) &&
+                        puuidElement.GetString() == match.Puuid)
                     {
-                        var matchId = matchInfo.RootElement.GetProperty("metadata").GetProperty("matchId").GetString();
-                        var puuidValue = participant.GetProperty("puuid").GetString();
-                        var championName = participant.GetProperty("championName").GetString();
-                        if (matchId == null || puuidValue == null || championName == null)
-                            throw new InvalidOperationException("Required participant fields are null.");
+                        if (!matchInfo.RootElement.TryGetProperty("metadata", out var metadataElement) ||
+                            !metadataElement.TryGetProperty("matchId", out var matchIdElement) ||
+                            matchIdElement.ValueKind != JsonValueKind.String)
+                            throw new InvalidOperationException("Missing or invalid 'metadata.matchId' property.");
+                        if (!participant.TryGetProperty("championName", out var championNameElement) ||
+                            championNameElement.ValueKind != JsonValueKind.String)
+                            throw new InvalidOperationException("Missing or invalid 'championName' property in participant.");
+                        if (!participant.TryGetProperty("win", out var winElement) ||
+                            winElement.ValueKind != JsonValueKind.True && winElement.ValueKind != JsonValueKind.False)
+                            throw new InvalidOperationException("Missing or invalid 'win' property in participant.");
+                        if (!participant.TryGetProperty("role", out var roleElement) ||
+                            roleElement.ValueKind != JsonValueKind.String)
+                            throw new InvalidOperationException("Missing or invalid 'role' property in participant.");
+                        if (!participant.TryGetProperty("kills", out var killsElement) ||
+                            killsElement.ValueKind != JsonValueKind.Number)
+                            throw new InvalidOperationException("Missing or invalid 'kills' property in participant.");
+                        if (!participant.TryGetProperty("deaths", out var deathsElement) ||
+                            deathsElement.ValueKind != JsonValueKind.Number)
+                            throw new InvalidOperationException("Missing or invalid 'deaths' property in participant.");
+                        if (!participant.TryGetProperty("assists", out var assistsElement) ||
+                            assistsElement.ValueKind != JsonValueKind.Number)
+                            throw new InvalidOperationException("Missing or invalid 'assists' property in participant.");
+
+                        var matchId = matchIdElement.GetString() ??
+                            throw new InvalidOperationException("Missing or invalid 'MatchId' property in participant.");
+                        var puuidValue = puuidElement.GetString() ??
+                            throw new InvalidOperationException("Missing or invalid 'Puuid' property in participant.");
+                        var championName = championNameElement.GetString() ??
+                            throw new InvalidOperationException("Missing or invalid 'ChampionName' property in participant.");
+                        var role = roleElement.GetString() ??
+                            throw new InvalidOperationException("Missing or invalid 'Role' property in participant.");
 
                         return new LolMatchParticipant
                         {
                             MatchId = matchId,
                             Puuid = puuidValue,
                             ChampionName = championName,
-                            Win = participant.GetProperty("win").GetBoolean(),
-                            Kills = participant.GetProperty("kills").GetInt32(),
-                            Deaths = participant.GetProperty("deaths").GetInt32(),
-                            Assists = participant.GetProperty("assists").GetInt32(),
+                            Win = winElement.GetBoolean(),
+                            Role = role,
+                            Kills = killsElement.GetInt32(),
+                            Deaths = deathsElement.GetInt32(),
+                            Assists = assistsElement.GetInt32(),
                         };
                     }
                 }

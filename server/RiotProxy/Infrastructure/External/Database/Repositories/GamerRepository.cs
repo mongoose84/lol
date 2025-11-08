@@ -53,7 +53,6 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             cmd.Parameters.AddWithValue("@puuid", puuid);
             cmd.Parameters.AddWithValue("@gamerName", gamerName);
             cmd.Parameters.AddWithValue("@tagLine", tagLine);
-            cmd.Parameters.AddWithValue("@lastChecked", DateTime.UtcNow);
             var result = await cmd.ExecuteScalarAsync();
 
             if (result == null || result == DBNull.Value)
@@ -73,7 +72,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@wins", gamer.Wins);
             cmd.Parameters.AddWithValue("@losses", gamer.Losses);
-            cmd.Parameters.AddWithValue("@lastChecked", gamer.LastChecked == DateTime.MinValue ? DateTime.UtcNow : gamer.LastChecked);
+            cmd.Parameters.AddWithValue("@lastChecked", gamer.LastChecked);
             cmd.Parameters.AddWithValue("@puuid", gamer.Puuid);
             var rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;
