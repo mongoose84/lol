@@ -113,7 +113,7 @@ export default defineComponent({
       nextId.value++
     }
 
-    const handleBlur = (row: SummonerField) => {
+        const handleBlur = (row: SummonerField) => {
       setTimeout(() => {
         row.showDropdown = false
       }, 200)

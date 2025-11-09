@@ -7,7 +7,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
     public class RiotRateLimitedJob : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
-        private bool _jobRunning;
+        private readonly SemaphoreSlim _jobLock = new(1, 1); // Only allow 1 execution at a time
 
         // Token buckets are set lower for RIOT rate limits  (20 requests/second, 100 requests/2 minutes)
         private readonly TokenBucket _perSecondBucket = new(15, TimeSpan.FromSeconds(1));
@@ -25,13 +25,10 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             {
                 var nextRun = DateTime.UtcNow.AddDays(1);
 
-                // Wait exactly until the next 10‑minute tick (or break early if cancelled)
+                // Only run the code once a day.
                 var delay = nextRun - DateTime.UtcNow;
                 if (delay > TimeSpan.Zero)
                     await Task.Delay(delay, stoppingToken);
-
-                if (_jobRunning)
-                    continue;
 
                 await RunJobAsync(stoppingToken);
             }
@@ -39,7 +36,13 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
         public async Task RunJobAsync(CancellationToken ct = default)
         {
-            _jobRunning = true;
+            // Try to acquire the lock; if already running, skip this execution
+            if (!await _jobLock.WaitAsync(0, ct))
+            {
+                Console.WriteLine("RiotRateLimitedJob is already running. Skipping this execution.");
+                return;
+            }
+
             try
             {
                 using var scope = _serviceProvider.CreateScope();
@@ -61,13 +64,11 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 await AddMatchHistoryToDb(matchHistory, matchRepository, ct);
                 Console.WriteLine("Match history added to DB.");
 
-                // Example: process unprocessed matches
                 var unprocessedMatches = await matchRepository.GetUnprocessedMatchesAsync();
                 Console.WriteLine($"Found {unprocessedMatches.Count} unprocessed matches.");
 
                 await AddMatchInfoToDb(unprocessedMatches, gamers, riotApiClient, participantRepository, matchRepository, gamerRepository, ct);
 
-                Console.WriteLine("Match info added to DB.");
                 Console.WriteLine("RiotRateLimitedJob completed.");
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
@@ -77,7 +78,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             }
             finally
             {
-                _jobRunning = false;
+                _jobLock.Release();
             }
         }
 
@@ -124,7 +125,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                         CancellationToken ct)
         {
             foreach (var match in matches)
-            {   
+            {
                 try
                 {
                     // Wait for permission from both token buckets
@@ -133,7 +134,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
                     var matchInfoJson = await riotApiClient.GetMatchInfoAsync(match.MatchId);
                     var participant = MapToParticipantEntity(matchInfoJson, match);
-                    
+
                     // Check before inserting
                     await participantRepository.AddParticipantIfNotExistsAsync(participant);
 
@@ -152,6 +153,8 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 {
                     Console.WriteLine($"Error adding match info to DB: {ex.Message}");
                 }
+
+                Console.WriteLine($"{matches.Count} match participants added to DB.");
             }
         }
 
