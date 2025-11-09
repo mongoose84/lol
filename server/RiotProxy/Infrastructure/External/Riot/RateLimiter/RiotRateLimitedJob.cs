@@ -153,9 +153,8 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 {
                     Console.WriteLine($"Error adding match info to DB: {ex.Message}");
                 }
-
-                Console.WriteLine($"{matches.Count} match participants added to DB.");
             }
+            Console.WriteLine($"{matches.Count} match participants added to DB.");
         }
 
         private string GetGameMode(JsonDocument matchInfo)
