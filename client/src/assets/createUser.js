@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-var development = true;
+var development = false;
 
 // POST /api/v1.0/user/{username} with JSON body { accounts: [{ gameName, tagLine }, ...] }
 export default async function createUser(username, accounts) {

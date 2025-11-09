@@ -21,8 +21,9 @@ builder.Services.AddScoped<LolMatchParticipantRepository>();
 // Register RiotApiClient
 builder.Services.AddScoped<IRiotApiClient, RiotApiClient>();
 
-// Register the background service
-builder.Services.AddHostedService<RiotRateLimitedJob>();
+// Register RiotRateLimitedJob as singleton AND hosted service
+builder.Services.AddSingleton<RiotRateLimitedJob>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<RiotRateLimitedJob>());
 
 builder.Services.AddCors(options =>
 {
