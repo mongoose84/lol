@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-var development = false;
+var development = true;
 
 // POST /api/v1.0/user/{username} with JSON body { accounts: [{ gameName, tagLine }, ...] }
 export default async function createUser(username, accounts) {
@@ -10,9 +10,9 @@ export default async function createUser(username, accounts) {
 
   try {
     const response = await axios.post(
-      `${base}/user/${encodeURIComponent(username)}`,
-      { accounts },
-      { headers: { 'Content-Type': 'application/json' } }
+      `${base}/user/${encodeURIComponent(username)}`, 
+      { password: 'ChosenPassword', accounts }, 
+      { headers:{'Content-Type':'application/json'} }
     );
     return response.data;
   } catch (e) {

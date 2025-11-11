@@ -28,7 +28,6 @@ namespace RiotProxy.Application.Endpoints
         {
             app.MapGet(Route, async (
                 string userName,
-                [FromBody] CreateUserRequest body,
                 [FromServices] UserRepository userRepo
                 ) =>
             {
@@ -76,7 +75,8 @@ namespace RiotProxy.Application.Endpoints
                 [FromBody] CreateUserRequest body,
                 [FromServices] UserRepository userRepo,
                 [FromServices] GamerRepository gamerRepo,
-                [FromServices] RiotRateLimitedJob riotJob
+                [FromServices] RiotRateLimitedJob riotJob,
+                [FromServices] UserPasswordRepository pwdRepo
                 ) =>
             {
                 ValidateBody(body);
@@ -104,9 +104,9 @@ namespace RiotProxy.Application.Endpoints
                             Console.WriteLine($"Could not create gamer for account: {account.GameName}#{account.TagLine}");
                             continue;
                         }
-
                     }
-                    
+                    // Store user password
+                    await pwdRepo.StoreAsync(user.UserId, body.Password);
                     // Trigger the background job to update match history
                     Console.WriteLine("Triggering RiotRateLimitedJob after user creation...");
                     _ = Task.Run(() => riotJob.RunJobAsync(CancellationToken.None));

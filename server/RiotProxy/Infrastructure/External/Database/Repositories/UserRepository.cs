@@ -31,7 +31,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
                 UserName = reader.GetString(1)
             };
         }
-        
+
         public async Task<User?> CreateUserAsync(string userName)
         {
             await using var conn = _factory.CreateConnection();
@@ -48,7 +48,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             //    ExecuteScalarAsync returns the first column of the first row,
             //    which is the value produced by LAST_INSERT_ID().
             var result = await cmd.ExecuteScalarAsync();
-            
+
             // If the insert failed for any reason, result could be null.
             if (result == null || result == DBNull.Value)
                 return null;
@@ -56,7 +56,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             // 4️⃣ Build and return the User object.
             var newUser = new User
             {
-                UserId   = Convert.ToInt32(result), // the auto‑generated id
+                UserId = Convert.ToInt32(result), // the auto‑generated id
                 UserName = userName
             };
 

@@ -7,8 +7,8 @@
       <div class="username-input-container">
         <input
           v-model="username"
-          type="text"
-          placeholder="Enter username…"
+          type="password"
+          placeholder="Enter password…"
           required
           class="username-input"
         />

@@ -5,6 +5,9 @@ using RiotProxy.Infrastructure.External.Database;
 using RiotProxy.Infrastructure.External.Database.Repositories;
 using RiotProxy.Infrastructure.External.Riot;
 using RiotProxy.Infrastructure.External.Riot.RateLimiter;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +15,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Read secrets needed for the program
 Secrets.Initialize();
 
+var jwtKey = Encoding.UTF8.GetBytes(Secrets.JwtKey);
+
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserPasswordRepository>();
 builder.Services.AddScoped<GamerRepository>();
 builder.Services.AddScoped<LolMatchRepository>();
 builder.Services.AddScoped<LolMatchParticipantRepository>();
@@ -46,12 +52,28 @@ builder.Services.AddCors(options =>
     });
 });
 
-
+builder.Services
+  .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+  .AddJwtBearer(opts =>
+  {
+      opts.TokenValidationParameters = new()
+      {
+          ValidateIssuer = false,
+          ValidateAudience = false,
+          ValidateLifetime = true,
+          ValidateIssuerSigningKey = true,
+          IssuerSigningKey = new SymmetricSecurityKey(jwtKey)
+      };
+  });
+  
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
 // Apply the CORS policy globally
 app.UseCors("VueClientPolicy");
+app.UseAuthentication();
+app.UseAuthorization(); 
 
 // Enable routing and map endpoints
 var riotProxyApplication = new RiotProxyApplication(app);

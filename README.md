@@ -1,4 +1,4 @@
-# League of Legends champion stats
+# League of Legends cross realm statistics
 
 The idea is to look up your champion and see some stats. More will follow
 

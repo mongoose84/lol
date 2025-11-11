@@ -1,24 +1,13 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import ChampionStats from '../views/ChampionStats.vue'
-import Search from '../views/Search.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import { authGuard } from './guard.js';
+import Login from '../views/Login.vue';
+import Search from '../views/Search.vue';
 
 const routes = [
-  {
-    path: '/',
-    name: 'Search',
-    component: Search,
-  },
-  {
-    path: '/championstats',
-    name: 'ChampionStats',
-    component: ChampionStats,
+  { path: '/', name: 'Search', component: Search, meta: { requiresAuth: true } },
+  { path: '/login', name: 'Login', component: Login }
+];
 
-    // pass the query string as a prop so the component can read it easily
-    props: route => ({ gameName: route.query.gameName, tagLine: route.query.tagLine }),
-  }
-]
-
-export default createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
-})
+const router = createRouter({ history: createWebHistory(), routes });
+router.beforeEach(authGuard);
+export default router;
