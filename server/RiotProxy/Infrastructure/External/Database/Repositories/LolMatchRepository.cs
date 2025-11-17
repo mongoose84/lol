@@ -102,7 +102,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             return matches;
         }
 
-        public async Task AddMatchIfNotExistsAsync(LolMatch match)
+        public async Task<int> AddMatchIfNotExistsAsync(LolMatch match)
         {
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
@@ -113,7 +113,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             cmd.Parameters.AddWithValue("@infoFetched", match.InfoFetched);
             cmd.Parameters.AddWithValue("@gameMode", match.GameMode ?? string.Empty);
             cmd.Parameters.AddWithValue("@gameEndTimestamp", match.GameEndTimestamp == DateTime.MinValue ? DBNull.Value : match.GameEndTimestamp);
-            await cmd.ExecuteNonQueryAsync();
+            return await cmd.ExecuteNonQueryAsync();
         }
     }
 }

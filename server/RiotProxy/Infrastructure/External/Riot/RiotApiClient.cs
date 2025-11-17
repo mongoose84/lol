@@ -87,7 +87,7 @@ namespace RiotProxy.Infrastructure.External.Riot
         public async Task<IList<LolMatch>> GetMatchHistoryAsync(string puuid)
         {
             string encodedPuuid = HttpUtility.UrlEncode(puuid);
-            var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=100";
+            var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=30";
             Metrics.SetLastUrlCalled("RiotServices.cs ln 92" + matchUrl);
 
             using var httpClient = new HttpClient();

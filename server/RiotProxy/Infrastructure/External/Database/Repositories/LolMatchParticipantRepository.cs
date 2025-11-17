@@ -12,7 +12,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             _factory = factory;
         }
 
-        public async Task AddParticipantIfNotExistsAsync(LolMatchParticipant participant)
+        public async Task<int> AddParticipantIfNotExistsAsync(LolMatchParticipant participant)
         {
             await using var conn = _factory.CreateConnection();
             await conn.OpenAsync();
@@ -27,7 +27,7 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             cmd.Parameters.AddWithValue("@kills", participant.Kills);
             cmd.Parameters.AddWithValue("@deaths", participant.Deaths);
             cmd.Parameters.AddWithValue("@assists", participant.Assists);
-            await cmd.ExecuteNonQueryAsync();
+            return await cmd.ExecuteNonQueryAsync();
         }  
     }
 }

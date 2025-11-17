@@ -82,9 +82,9 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             }
         }
 
-        private async Task<IList<LolMatch>> GetMatchHistoryFromRiotApi(IList<Gamer> gamers, IRiotApiClient riotApiClient, CancellationToken ct)
+        private async Task<IDictionary<Gamer, IList<LolMatch>>> GetMatchHistoryFromRiotApi(IList<Gamer> gamers, IRiotApiClient riotApiClient, CancellationToken ct)
         {
-            var allMatchHistory = new List<LolMatch>();
+            var gamerHistories = new Dictionary<Gamer, IList<LolMatch>>();
 
             foreach (var gamer in gamers)
             {
@@ -94,24 +94,35 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
                 var matchHistory = await riotApiClient.GetMatchHistoryAsync(gamer.Puuid);
                 
-                allMatchHistory.AddRange(matchHistory);
+                gamerHistories.Add(gamer, matchHistory);
             }
 
-            return allMatchHistory;
+            return gamerHistories;
         }
 
-        private async Task AddMatchHistoryToDb(IList<LolMatch> matchHistory, LolMatchRepository matchRepository, CancellationToken ct)
+        private async Task AddMatchHistoryToDb(IDictionary<Gamer, IList<LolMatch>> gamerHistories, LolMatchRepository matchRepository, CancellationToken ct)
         {
-            foreach (var match in matchHistory)
+            foreach (var kvp in gamerHistories)
             {
-                try
+                var gamer = kvp.Key;
+                var matches = kvp.Value;
+
+                foreach (var match in matches)  
                 {
-                    // Check before inserting - cleaner than catching exceptions
-                    await matchRepository.AddMatchIfNotExistsAsync(match);
-                }
-                catch (Exception ex) when (!(ex is OperationCanceledException))
-                {
-                    Console.WriteLine($"Error adding match history to DB: {ex.Message}");
+
+                    try
+                    {
+                        // Check before inserting - cleaner than catching exceptions
+                        var affectedRows = await matchRepository.AddMatchIfNotExistsAsync(match);
+                        if (affectedRows == 0)
+                        {
+                            break; // Stop processing further matches for this gamer
+                        }
+                    }
+                    catch (Exception ex) when (!(ex is OperationCanceledException))
+                    {
+                        Console.WriteLine($"Error adding match history to DB: {ex.Message}");
+                    }
                 }
             }
         }
