@@ -17,15 +17,16 @@ Secrets.Initialize();
 
 var jwtKey = Encoding.UTF8.GetBytes(Secrets.JwtKey);
 
+builder.Services.AddSingleton<IRiotApiClient, RiotApiClient>();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserPasswordRepository>();
 builder.Services.AddScoped<GamerRepository>();
 builder.Services.AddScoped<LolMatchRepository>();
 builder.Services.AddScoped<LolMatchParticipantRepository>();
 
-// Register RiotApiClient
-builder.Services.AddScoped<IRiotApiClient, RiotApiClient>();
+
 
 // Register RiotRateLimitedJob as singleton AND hosted service
 builder.Services.AddSingleton<RiotRateLimitedJob>();

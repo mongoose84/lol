@@ -8,14 +8,11 @@ namespace RiotProxy.Application.Endpoints
 {
     public class UserEndpoint : IEndpoint
     {
-        private readonly IRiotApiClient _riotApiClient;
-
         public string Route { get; }
 
-        public UserEndpoint(string basePath, IRiotApiClient riotApiClient)
+        public UserEndpoint(string basePath)
         {
             Route = basePath + "/user/{userName}";
-            _riotApiClient = riotApiClient;
         }
 
         public void Configure(WebApplication app)
@@ -76,7 +73,8 @@ namespace RiotProxy.Application.Endpoints
                 [FromServices] UserRepository userRepo,
                 [FromServices] GamerRepository gamerRepo,
                 [FromServices] RiotRateLimitedJob riotJob,
-                [FromServices] UserPasswordRepository pwdRepo
+                [FromServices] UserPasswordRepository pwdRepo,
+                [FromServices] IRiotApiClient riotApiClient
                 ) =>
             {
                 ValidateBody(body);
@@ -94,7 +92,7 @@ namespace RiotProxy.Application.Endpoints
                     // Get Puuid from Riot API
                     foreach (var account in body.Accounts)
                     {
-                        var puuid = await _riotApiClient.GetPuuidAsync(account.GameName, account.TagLine);
+                        var puuid = await riotApiClient.GetPuuidAsync(account.GameName, account.TagLine);
 
                         // Create Gamer entry
                         var gamerCreated = await gamerRepo.CreateGamerAsync(user.UserId, puuid, account.GameName, account.TagLine);
