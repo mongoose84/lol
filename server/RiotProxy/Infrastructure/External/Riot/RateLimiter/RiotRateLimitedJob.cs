@@ -9,9 +9,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
         private readonly IServiceProvider _serviceProvider;
         private readonly SemaphoreSlim _jobLock = new(1, 1); // Only allow 1 execution at a time
 
-        // Token buckets are set lower for RIOT rate limits  (20 requests/second, 100 requests/2 minutes)
-        private readonly TokenBucket _perSecondBucket = new(15, TimeSpan.FromSeconds(1));
-        private readonly TokenBucket _perTwoMinuteBucket = new(80, TimeSpan.FromMinutes(2));
+        
 
         public RiotRateLimitedJob(IServiceProvider serviceProvider)
         {
@@ -88,10 +86,6 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
             foreach (var gamer in gamers)
             {
-                // Wait for permission from both token buckets
-                await _perSecondBucket.WaitAsync(ct);
-                await _perTwoMinuteBucket.WaitAsync(ct);
-
                 var matchHistory = await riotApiClient.GetMatchHistoryAsync(gamer.Puuid);
                 
                 allMatchHistory.AddRange(matchHistory);
@@ -128,10 +122,6 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             {
                 try
                 {
-                    // Wait for permission from both token buckets
-                    await _perSecondBucket.WaitAsync(ct);
-                    await _perTwoMinuteBucket.WaitAsync(ct);
-
                     var matchInfoJson = await riotApiClient.GetMatchInfoAsync(match.MatchId);
                     var participant = MapToParticipantEntity(matchInfoJson, match);
 
