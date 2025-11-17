@@ -12,14 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Read secrets needed for the program
 Secrets.Initialize();
 
+builder.Services.AddSingleton<IRiotApiClient, RiotApiClient>();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<GamerRepository>();
 builder.Services.AddScoped<LolMatchRepository>();
 builder.Services.AddScoped<LolMatchParticipantRepository>();
 
-// Register RiotApiClient
-builder.Services.AddScoped<IRiotApiClient, RiotApiClient>();
+
 
 // Register RiotRateLimitedJob as singleton AND hosted service
 builder.Services.AddSingleton<RiotRateLimitedJob>();
