@@ -1,5 +1,5 @@
 # .github/workflows/deploy-api.yml
-name: API - ASP .NET API CI & Deploy
+name: Server - ASP .NET API CI & Deploy
 
 # -------------------------------------------------
 # When to run

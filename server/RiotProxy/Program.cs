@@ -1,4 +1,3 @@
-using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
 using RiotProxy.Infrastructure.External.Database;
