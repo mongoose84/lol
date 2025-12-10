@@ -5,7 +5,6 @@ using RiotProxy.Infrastructure.External.Database.Repositories;
 using RiotProxy.Infrastructure.External.Riot;
 using RiotProxy.Infrastructure.External.Riot.RateLimiter;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Read secrets needed for the program
@@ -19,11 +18,9 @@ builder.Services.AddScoped<GamerRepository>();
 builder.Services.AddScoped<LolMatchRepository>();
 builder.Services.AddScoped<LolMatchParticipantRepository>();
 
-
-
-// Register RiotRateLimitedJob as singleton AND hosted service
-builder.Services.AddSingleton<RiotRateLimitedJob>();
-builder.Services.AddHostedService(provider => provider.GetRequiredService<RiotRateLimitedJob>());
+// Register MatchHistorySyncJob as singleton AND hosted service
+builder.Services.AddSingleton<MatchHistorySyncJob>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<MatchHistorySyncJob>());
 
 builder.Services.AddCors(options =>
 {

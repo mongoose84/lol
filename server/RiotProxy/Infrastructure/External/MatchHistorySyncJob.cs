@@ -4,26 +4,21 @@ using System.Text.Json;
 
 namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 {
-    public class RiotRateLimitedJob : BackgroundService
+    public class MatchHistorySyncJob : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly SemaphoreSlim _jobLock = new(1, 1); // Only allow 1 execution at a time
 
-        
-
-        public RiotRateLimitedJob(IServiceProvider serviceProvider)
+        public MatchHistorySyncJob(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // Run until the host shuts down
             while (!stoppingToken.IsCancellationRequested)
             {
-                var nextRun = DateTime.UtcNow.AddDays(1);
-
-                // Only run the code once a day.
+                var nextRun = DateTime.UtcNow.AddHours(1); // Run hourly instead of daily for testing
                 var delay = nextRun - DateTime.UtcNow;
                 if (delay > TimeSpan.Zero)
                     await Task.Delay(delay, stoppingToken);
@@ -34,7 +29,6 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
         public async Task RunJobAsync(CancellationToken ct = default)
         {
-            // Try to acquire the lock; if already running, skip this execution
             if (!await _jobLock.WaitAsync(0, ct))
             {
                 Console.WriteLine("RiotRateLimitedJob is already running. Skipping this execution.");
@@ -48,30 +42,28 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 var gamerRepository = scope.ServiceProvider.GetRequiredService<GamerRepository>();
                 var matchRepository = scope.ServiceProvider.GetRequiredService<LolMatchRepository>();
                 var participantRepository = scope.ServiceProvider.GetRequiredService<LolMatchParticipantRepository>();
-                
 
                 Console.WriteLine("RiotRateLimitedJob started.");
                 var gamers = await gamerRepository.GetAllGamersAsync();
-
                 Console.WriteLine($"Found {gamers.Count} gamers.");
 
-                // Example: fetch match history for all gamers
-                var matchHistory = await GetMatchHistoryFromRiotApi(gamers, riotApiClient, ct);
-                Console.WriteLine($"Fetched match history for {matchHistory.Count} matches.");
+                // Fetch only NEW match IDs incrementally
+                var newMatches = await GetNewMatchHistoryFromRiotApi(gamers, riotApiClient, matchRepository, ct);
+                Console.WriteLine($"Fetched {newMatches.Count} NEW matches.");
 
-                await AddMatchHistoryToDb(matchHistory, matchRepository, ct);
-                Console.WriteLine("Match history added to DB.");
+                if (newMatches.Count > 0)
+                {
+                    await AddMatchHistoryToDb(newMatches, matchRepository, ct);
+                    Console.WriteLine("New match history added to DB.");
 
-                var unprocessedMatches = await matchRepository.GetUnprocessedMatchesAsync();
-                Console.WriteLine($"Found {unprocessedMatches.Count} unprocessed matches.");
-
-                await AddMatchInfoToDb(unprocessedMatches, gamers, riotApiClient, participantRepository, matchRepository, gamerRepository, ct);
+                    // Fetch details only for new matches
+                    await AddMatchInfoToDb(newMatches, gamers, riotApiClient, participantRepository, matchRepository, gamerRepository, ct);
+                }
 
                 Console.WriteLine("RiotRateLimitedJob completed.");
             }
             catch (Exception ex) when (!(ex is OperationCanceledException))
             {
-                // Log and handle exceptions as needed
                 Console.WriteLine($"Error in RiotRateLimitedJob: {ex.Message}");
             }
             finally
@@ -80,18 +72,63 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             }
         }
 
-        private async Task<IList<LolMatch>> GetMatchHistoryFromRiotApi(IList<Gamer> gamers, IRiotApiClient riotApiClient, CancellationToken ct)
+        private async Task<IList<LolMatch>> GetNewMatchHistoryFromRiotApi(
+            IList<Gamer> gamers,
+            IRiotApiClient riotApiClient,
+            LolMatchRepository matchRepository,
+            CancellationToken ct)
         {
-            var allMatchHistory = new List<LolMatch>();
+            var allNewMatches = new List<LolMatch>();
 
             foreach (var gamer in gamers)
             {
-                var matchHistory = await riotApiClient.GetMatchHistoryAsync(gamer.Puuid);
-                
-                allMatchHistory.AddRange(matchHistory);
+                // Get existing match IDs for this gamer
+                var existingMatchIds = await matchRepository.GetMatchIdsForPuuidAsync(gamer.Puuid);
+                var existingSet = new HashSet<string>(existingMatchIds);
+
+                int start = 0;
+                const int pageSize = 20; // Smaller pages
+                bool foundExisting = false;
+                int newMatchesForGamer = 0; // Track count per gamer
+
+                // Use startTime filter if we have LastChecked
+                long? startTime = null;
+                if (gamer.LastChecked != DateTime.MinValue)
+                {
+                    startTime = new DateTimeOffset(gamer.LastChecked).ToUnixTimeSeconds();
+                }
+
+                while (!foundExisting && start < 100) // Safety limit
+                {
+                    var matchHistory = await riotApiClient.GetMatchHistoryAsync(gamer.Puuid, start, pageSize, startTime);
+
+                    if (matchHistory.Count == 0)
+                        break; // No more matches
+
+                    foreach (var match in matchHistory)
+                    {
+                        if (existingSet.Contains(match.MatchId))
+                        {
+                            // Found a match we already have - stop paging for this gamer
+                            foundExisting = true;
+                            Console.WriteLine($"Found existing match {match.MatchId} for {gamer.GamerName}, stopping pagination.");
+                            break;
+                        }
+
+                        allNewMatches.Add(match);
+                        newMatchesForGamer++;
+                    }
+
+                    if (matchHistory.Count < pageSize)
+                        break; // Last page
+
+                    start += pageSize;
+                }
+
+                Console.WriteLine($"Found {newMatchesForGamer} new matches for {gamer.GamerName}");
             }
 
-            return allMatchHistory;
+            return allNewMatches;
         }
 
         private async Task AddMatchHistoryToDb(IList<LolMatch> matchHistory, LolMatchRepository matchRepository, CancellationToken ct)
@@ -100,7 +137,6 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             {
                 try
                 {
-                    // Check before inserting - cleaner than catching exceptions
                     await matchRepository.AddMatchIfNotExistsAsync(match);
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
@@ -125,7 +161,6 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                     var matchInfoJson = await riotApiClient.GetMatchInfoAsync(match.MatchId);
                     var participant = MapToParticipantEntity(matchInfoJson, match);
 
-                    // Check before inserting
                     await participantRepository.AddParticipantIfNotExistsAsync(participant);
 
                     match.GameMode = GetGameMode(matchInfoJson);
@@ -141,7 +176,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {
-                    Console.WriteLine($"Error adding match info to DB: {ex.Message}");
+                    Console.WriteLine($"Error adding match info to DB for match {match.MatchId}: {ex.Message}");
                 }
             }
             Console.WriteLine($"{matches.Count} match participants added to DB.");

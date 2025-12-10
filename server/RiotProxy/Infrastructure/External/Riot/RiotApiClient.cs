@@ -94,35 +94,22 @@ namespace RiotProxy.Infrastructure.External.Riot
             throw new InvalidOperationException("Response does not contain a 'puuid' field.");
         }
 
-        public async Task<IList<LolMatch>> GetMatchHistoryAsync(string puuid, CancellationToken ct = default)
+        public async Task<IList<LolMatch>> GetMatchHistoryAsync(string puuid, int start = 0, int count = 100, long? startTime = null, CancellationToken ct = default)
         {
-            string encodedPuuid = HttpUtility.UrlEncode(puuid);
-            var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{encodedPuuid}/ids") + "&start=0&count=100";
-            Metrics.SetLastUrlCalled("RiotServices.cs ln 92" + matchUrl);
-
             using var httpClient = new HttpClient();
+            var url = $"{RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{puuid}/ids")}?start={start}&count={count}";
+            
+            if (startTime.HasValue)
+                url += $"&startTime={startTime.Value}";
 
-            await _perSecondBucket.WaitAsync(ct);
-            await _perTwoMinuteBucket.WaitAsync(ct);
-
-            var response = await httpClient.GetAsync(matchUrl);
-            response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx.
-
-            // Read and deserialize the JSON array of strings
+            var response = await httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            
             var json = await response.Content.ReadAsStringAsync();
-            var matchesAsJson = JsonSerializer.Deserialize<List<string>>(json,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>();
-
-            // Use Select to map matchId strings to LolMatch objects
-            var matches = matchesAsJson
-                .Select(matchId => new LolMatch
-                {
-                    MatchId = matchId,
-                    Puuid = puuid
-                })
-                .ToList();
-
-            return matches;
+            var matchIds = JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+            
+            var matchIdList = matchIds.Select(id => new LolMatch { MatchId = id, Puuid = puuid, InfoFetched = false }).ToList();
+            return matchIdList;
         }
 
         public async Task<JsonDocument> GetMatchInfoAsync(string matchId, CancellationToken ct = default)

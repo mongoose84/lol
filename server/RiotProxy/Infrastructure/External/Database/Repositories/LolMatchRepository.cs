@@ -115,5 +115,24 @@ namespace RiotProxy.Infrastructure.External.Database.Repositories
             cmd.Parameters.AddWithValue("@gameEndTimestamp", match.GameEndTimestamp == DateTime.MinValue ? DBNull.Value : match.GameEndTimestamp);
             await cmd.ExecuteNonQueryAsync();
         }
+
+        public async Task<IList<string>> GetMatchIdsForPuuidAsync(string puuid)
+        {
+            var matchIds = new List<string>();
+            await using var conn = _factory.CreateConnection();
+            await conn.OpenAsync();
+
+            const string sql = "SELECT MatchId FROM LolMatch WHERE Puuid = @puuid";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@puuid", puuid);
+            
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                matchIds.Add(reader.GetString(0));
+            }
+            
+            return matchIds;
+        }
     }
 }
