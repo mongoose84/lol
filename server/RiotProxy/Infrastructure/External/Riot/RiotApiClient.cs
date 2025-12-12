@@ -97,8 +97,10 @@ namespace RiotProxy.Infrastructure.External.Riot
         public async Task<IList<LolMatch>> GetMatchHistoryAsync(string puuid, int start = 0, int count = 100, long? startTime = null, CancellationToken ct = default)
         {
             using var httpClient = new HttpClient();
-            var url = $"{RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{puuid}/ids")}?start={start}&count={count}";
-            
+            var url = $"{RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{puuid}/ids")}&start={start}&count={count}";
+
+            Console.WriteLine("Fetching match history from URL: " + url);
+
             if (startTime.HasValue)
                 url += $"&startTime={startTime.Value}";
 

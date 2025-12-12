@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using RiotProxy.Application.DTOs;
 using RiotProxy.Infrastructure.External.Database.Repositories;
 using RiotProxy.Infrastructure.External.Riot;
-using RiotProxy.Infrastructure.External.Riot.RateLimiter;
+using RiotProxy.Infrastructure.External;
 
 namespace RiotProxy.Application.Endpoints
 {
@@ -73,7 +73,7 @@ namespace RiotProxy.Application.Endpoints
                 [FromBody] CreateUserRequest body,
                 [FromServices] UserRepository userRepo,
                 [FromServices] GamerRepository gamerRepo,
-                [FromServices] RiotRateLimitedJob riotJob,
+                [FromServices] MatchHistorySyncJob matchHistorySyncJob,
                 [FromServices] IRiotApiClient riotApiClient
                 ) =>
             {
@@ -106,8 +106,8 @@ namespace RiotProxy.Application.Endpoints
                     }
                     
                     // Trigger the background job to update match history
-                    Console.WriteLine("Triggering RiotRateLimitedJob after user creation...");
-                    _ = Task.Run(() => riotJob.RunJobAsync(CancellationToken.None));
+                    Console.WriteLine("Triggering MatchHistorySyncJob after user creation...");
+                    _ = Task.Run(() => matchHistorySyncJob.RunJobAsync(CancellationToken.None));
 
                     return Results.Ok("{\"message\":\"User and gamers created successfully\"}");
                 }

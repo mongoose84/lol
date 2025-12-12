@@ -3,7 +3,7 @@ using RiotProxy.Application;
 using RiotProxy.Infrastructure.External.Database;
 using RiotProxy.Infrastructure.External.Database.Repositories;
 using RiotProxy.Infrastructure.External.Riot;
-using RiotProxy.Infrastructure.External.Riot.RateLimiter;
+using RiotProxy.Infrastructure.External;
 
 var builder = WebApplication.CreateBuilder(args);
 

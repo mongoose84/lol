@@ -1,8 +1,9 @@
 using RiotProxy.External.Domain.Entities;
 using RiotProxy.Infrastructure.External.Database.Repositories;
+using RiotProxy.Infrastructure.External.Riot;
 using System.Text.Json;
 
-namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
+namespace RiotProxy.Infrastructure.External
 {
     public class MatchHistorySyncJob : BackgroundService
     {
@@ -18,12 +19,14 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var nextRun = DateTime.UtcNow.AddHours(1); // Run hourly instead of daily for testing
+                await RunJobAsync(stoppingToken);
+
+                var nextRun = DateTime.UtcNow.AddDays(1); // Run daily
                 var delay = nextRun - DateTime.UtcNow;
                 if (delay > TimeSpan.Zero)
                     await Task.Delay(delay, stoppingToken);
 
-                await RunJobAsync(stoppingToken);
+                
             }
         }
 
@@ -83,6 +86,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
             foreach (var gamer in gamers)
             {
                 // Get existing match IDs for this gamer
+                Console.WriteLine($"Fetching match history for gamer: {gamer.GamerName}");
                 var existingMatchIds = await matchRepository.GetMatchIdsForPuuidAsync(gamer.Puuid);
                 var existingSet = new HashSet<string>(existingMatchIds);
 
@@ -97,6 +101,8 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
                 {
                     startTime = new DateTimeOffset(gamer.LastChecked).ToUnixTimeSeconds();
                 }
+
+                Console.WriteLine("Getting match history for gamer: " + gamer.GamerName);
 
                 while (!foundExisting && start < 100) // Safety limit
                 {
