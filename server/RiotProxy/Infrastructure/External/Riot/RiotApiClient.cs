@@ -11,6 +11,13 @@ namespace RiotProxy.Infrastructure.External.Riot
         private readonly RiotTokenBucket _perSecondBucket = new(15, TimeSpan.FromSeconds(1));
         private readonly RiotTokenBucket _perTwoMinuteBucket = new(80, TimeSpan.FromMinutes(2));
 
+        private readonly HttpClient _http;
+
+        public RiotApiClient(IHttpClientFactory httpClientFactory)
+        {
+            _http = httpClientFactory.CreateClient("RiotApi");
+        }
+
         public async Task<string> GetSummonerAsync(string gameName, string tagLine, CancellationToken ct = default)
         {
             // Encode each component so special characters are safe in the URL path.
@@ -23,12 +30,11 @@ namespace RiotProxy.Infrastructure.External.Riot
             Metrics.SetLastUrlCalled("RiotServices.cs ln 19" + summonerUrl);
             
             // Perform the GET request.
-            using var httpClient = new HttpClient();
             
             await _perSecondBucket.WaitAsync(ct);
             await _perTwoMinuteBucket.WaitAsync(ct);
 
-            var response = await httpClient.GetAsync(summonerUrl, ct);
+            var response = await _http.GetAsync(summonerUrl, ct);
             response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx.
 
             // Read the JSON payload.
@@ -70,14 +76,13 @@ namespace RiotProxy.Infrastructure.External.Riot
             // Build the full request URI.
             var path = $"/account/v1/accounts/by-riot-id/{gameName}/{tagLine}";
             var url = RiotUrlBuilder.GetAccountUrl(path);
-            using var httpClient = new HttpClient();
             Metrics.SetLastUrlCalled("RiotServices.cs ln 67" + url);
 
             await _perSecondBucket.WaitAsync(ct);
             await _perTwoMinuteBucket.WaitAsync(ct);
 
             // Perform the GET request.
-            var response = await httpClient.GetAsync(url);
+            var response = await _http.GetAsync(url, ct);
             response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx.
 
             // Read the JSON payload.
@@ -96,7 +101,6 @@ namespace RiotProxy.Infrastructure.External.Riot
 
         public async Task<IList<LolMatch>> GetMatchHistoryAsync(string puuid, int start = 0, int count = 100, long? startTime = null, CancellationToken ct = default)
         {
-            using var httpClient = new HttpClient();
             var url = $"{RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{puuid}/ids")}&start={start}&count={count}";
 
             if (startTime.HasValue)
@@ -105,7 +109,7 @@ namespace RiotProxy.Infrastructure.External.Riot
             await _perSecondBucket.WaitAsync(ct);
             await _perTwoMinuteBucket.WaitAsync(ct);
 
-            var response = await httpClient.GetAsync(url, ct);
+            var response = await _http.GetAsync(url, ct);
             response.EnsureSuccessStatusCode();
             
             var json = await response.Content.ReadAsStringAsync(ct);
@@ -118,13 +122,12 @@ namespace RiotProxy.Infrastructure.External.Riot
         public async Task<JsonDocument> GetMatchInfoAsync(string matchId, CancellationToken ct = default)
         {
             var matchUrl = RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/{matchId}");
-            using var httpClient = new HttpClient();
             Metrics.SetLastUrlCalled("RiotServices.cs ln 110" + matchUrl);
 
             await _perSecondBucket.WaitAsync(ct);
             await _perTwoMinuteBucket.WaitAsync(ct);
 
-            var response = await httpClient.GetAsync(matchUrl, ct);
+            var response = await _http.GetAsync(matchUrl, ct);
             response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx
             var json = await response.Content.ReadAsStringAsync();
             var matchDoc = JsonDocument.Parse(json);
