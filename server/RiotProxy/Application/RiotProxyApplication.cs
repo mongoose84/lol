@@ -8,8 +8,7 @@ namespace RiotProxy.Application
         private readonly WebApplication _app;
         private readonly string _apiVersion = "v1.0";
         private readonly string _basePath;
-        private readonly IRiotApiClient _riotApi = new RiotApiClient();
-        private readonly IList<IEndpoint> _endpoints = new List<IEndpoint>();
+        private readonly IList<IEndpoint> _endpoints = [];
         public RiotProxyApplication(WebApplication app)
         {
             _app = app;
@@ -21,7 +20,7 @@ namespace RiotProxy.Application
             var metricsEndpoint = new MetricsEndpoint(_basePath);
             _endpoints.Add(metricsEndpoint);
 
-            var personEndpoint = new UserEndpoint(_basePath, _riotApi);
+            var personEndpoint = new UserEndpoint(_basePath);
             _endpoints.Add(personEndpoint);
         }
 

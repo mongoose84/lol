@@ -2,9 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
+namespace RiotProxy.Infrastructure.External.Riot
 {
-    public sealed class TokenBucket : IDisposable
+    public sealed class RiotTokenBucket : IDisposable
     {
         private readonly int _capacity;
         private readonly TimeSpan _refillPeriod;
@@ -13,7 +13,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
         private readonly Timer _timer;
         private bool _disposed;
 
-        public TokenBucket(int capacity, TimeSpan refillPeriod)
+        public RiotTokenBucket(int capacity, TimeSpan refillPeriod)
         {
             if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity));
             if (refillPeriod <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(refillPeriod));
@@ -50,7 +50,7 @@ namespace RiotProxy.Infrastructure.External.Riot.RateLimiter
 
         public async Task WaitAsync(CancellationToken ct)
         {
-            if (_disposed) throw new ObjectDisposedException(nameof(TokenBucket));
+            if (_disposed) throw new ObjectDisposedException(nameof(RiotTokenBucket));
             
             // Acquire a permit; this will block until a token is available
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);

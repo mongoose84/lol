@@ -1,29 +1,36 @@
-using RiotProxy.Utilities;
 using RiotProxy.Infrastructure;
 using RiotProxy.Application;
 using RiotProxy.Infrastructure.External.Database;
 using RiotProxy.Infrastructure.External.Database.Repositories;
 using RiotProxy.Infrastructure.External.Riot;
-using RiotProxy.Infrastructure.External.Riot.RateLimiter;
-
+using RiotProxy.Infrastructure.External;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Read secrets needed for the program
 Secrets.Initialize();
 
+builder.Services.AddSingleton<IRiotApiClient, RiotApiClient>();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<GamerRepository>();
 builder.Services.AddScoped<LolMatchRepository>();
 builder.Services.AddScoped<LolMatchParticipantRepository>();
 
-// Register RiotApiClient
-builder.Services.AddScoped<IRiotApiClient, RiotApiClient>();
+// Named HttpClient for Riot API
+builder.Services.AddHttpClient("RiotApi", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+    // If you keep the Riot API key in Secrets, set the header here
+    if (!string.IsNullOrWhiteSpace(Secrets.ApiKey))
+        client.DefaultRequestHeaders.Add("X-Riot-Token", Secrets.ApiKey);
+});
 
-// Register RiotRateLimitedJob as singleton AND hosted service
-builder.Services.AddSingleton<RiotRateLimitedJob>();
-builder.Services.AddHostedService(provider => provider.GetRequiredService<RiotRateLimitedJob>());
+builder.Services.AddSingleton<MatchHistorySyncJob>();
+builder.Services.AddSingleton<IRiotApiClient, RiotApiClient>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<MatchHistorySyncJob>());
 
 builder.Services.AddCors(options =>
 {
@@ -45,8 +52,6 @@ builder.Services.AddCors(options =>
         // policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
-
-
 
 var app = builder.Build();
 
