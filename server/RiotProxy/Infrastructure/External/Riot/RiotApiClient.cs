@@ -13,7 +13,7 @@ namespace RiotProxy.Infrastructure.External.Riot
 
         public async Task<string> GetSummonerAsync(string gameName, string tagLine, CancellationToken ct = default)
         {
-           // Encode each component so special characters are safe in the URL path.
+            // Encode each component so special characters are safe in the URL path.
             var encodedGameName = Uri.EscapeDataString(gameName);
             var encodedTagLine = Uri.EscapeDataString(tagLine);
 
@@ -28,7 +28,7 @@ namespace RiotProxy.Infrastructure.External.Riot
             await _perSecondBucket.WaitAsync(ct);
             await _perTwoMinuteBucket.WaitAsync(ct);
 
-            var response = await httpClient.GetAsync(summonerUrl);
+            var response = await httpClient.GetAsync(summonerUrl, ct);
             response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx.
 
             // Read the JSON payload.
@@ -99,15 +99,16 @@ namespace RiotProxy.Infrastructure.External.Riot
             using var httpClient = new HttpClient();
             var url = $"{RiotUrlBuilder.GetMatchUrl($"/match/v5/matches/by-puuid/{puuid}/ids")}&start={start}&count={count}";
 
-            Console.WriteLine("Fetching match history from URL: " + url);
-
             if (startTime.HasValue)
                 url += $"&startTime={startTime.Value}";
 
-            var response = await httpClient.GetAsync(url);
+            await _perSecondBucket.WaitAsync(ct);
+            await _perTwoMinuteBucket.WaitAsync(ct);
+
+            var response = await httpClient.GetAsync(url, ct);
             response.EnsureSuccessStatusCode();
             
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync(ct);
             var matchIds = JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
             
             var matchIdList = matchIds.Select(id => new LolMatch { MatchId = id, Puuid = puuid, InfoFetched = false }).ToList();
@@ -123,7 +124,7 @@ namespace RiotProxy.Infrastructure.External.Riot
             await _perSecondBucket.WaitAsync(ct);
             await _perTwoMinuteBucket.WaitAsync(ct);
 
-            var response = await httpClient.GetAsync(matchUrl);
+            var response = await httpClient.GetAsync(matchUrl, ct);
             response.EnsureSuccessStatusCode();   // Throws if the status is not 2xx
             var json = await response.Content.ReadAsStringAsync();
             var matchDoc = JsonDocument.Parse(json);
